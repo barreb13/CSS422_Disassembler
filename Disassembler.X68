@@ -1,5 +1,5 @@
 *-----------------------------------------------------------
-* Title      : Disassembler V3, test changes with bash
+* Title      : Disassembler
 * Written by : Brent and Parker
 * Date       : 2/5/2021
 * Description: Final Project for CSS 422
@@ -7,13 +7,24 @@
     ORG    $1000
 START:                  ; first instruction of program
 
-* Put program code here
+    ;welcome message    
+    
+    
+    ;get starting address
+    
+    
+    ;get ending address
+    
+    
+    
 
     SIMHALT             ; halt simulator
 
 * Put variables and constants here
 
     END    START        ; last line of source
+
+;jump table
 
 
 
