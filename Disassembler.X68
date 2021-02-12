@@ -4,27 +4,68 @@
 * Date       : 2/5/2021
 * Description: Final Project for CSS 422
 *-----------------------------------------------------------
+
+;************************Define Constants**************************** 
+CR  EQU     $0D     ;carriage return
+LF  EQU     $0a     ;line feed
+;buffer size = 64 bytes?
+
+
+
+
+
+
     ORG    $1000
 START:                  ; first instruction of program
 
-    ;welcome message    
+;************************Welcome Message**************************** 
+    LEA     welcome_message,A1  ;load the welcome message into A1
+    MOVE.B  #14,D0
+    TRAP    #15
+
+
+ 
     
     
-    ;get starting address
+;************************Get Starting Address**************************** 
+
+
+
+
+
+
     
     
-    ;get ending address
-    
-    
+;************************Get Ending Address**************************** 
+
+
+
+
+
+
+
+
+
+;************************Main Loop????**************************** 
+
+
+
+
+
+   
     
 
     SIMHALT             ; halt simulator
 
-* Put variables and constants here
+;jump table
+
+
+welcome_message     DC.B    'Welcome to 68k disassembler',CR,LF,0
 
     END    START        ; last line of source
 
-;jump table
+
+
 
 
 
@@ -32,6 +73,6 @@ START:                  ; first instruction of program
 
 
 *~Font name~Courier New~
-*~Font size~10~
+*~Font size~18~
 *~Tab type~1~
 *~Tab size~4~
