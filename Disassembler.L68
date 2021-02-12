@@ -1,6 +1,6 @@
 00001000 Starting Address
 Assembler used: EASy68K Editor/Assembler v5.16.01
-Created On: 2/12/2021 11:35:40 AM
+Created On: 2/12/2021 3:24:21 PM
 
 00000000                             1  *-----------------------------------------------------------
 00000000                             2  * Title      : Disassembler
@@ -10,63 +10,135 @@ Created On: 2/12/2021 11:35:40 AM
 00000000                             6  *-----------------------------------------------------------
 00000000                             7  
 00000000                             8  ;************************Define Constants**************************** 
-00000000  =0000000D                  9  CR  EQU     $0D     ;carriage return
-00000000  =0000000A                 10  LF  EQU     $0a     ;line feed
-00000000                            11  ;buffer size = 64 bytes?
-00000000                            12  
-00000000                            13  
+00000000  =0000000D                  9  CR                  EQU     $0D     ;carriage return
+00000000  =0000000A                 10  LF                  EQU     $0a     ;line feed
+00000000  =000A0000                 11  stack               EQU     $000A0000
+00000000  =0000001E                 12  lines_per_screen    EQU     30
+00000000  =00000040                 13  buffer_size         EQU     64
 00000000                            14  
 00000000                            15  
-00000000                            16  
-00000000                            17  
-00001000                            18      ORG    $1000
-00001000                            19  START:                  ; first instruction of program
-00001000                            20  
-00001000                            21  ;************************Welcome Message**************************** 
-00001000  43F9 00001010             22      LEA     welcome_message,A1  ;load the welcome message into A1
-00001006  103C 000E                 23      MOVE.B  #14,D0
-0000100A  4E4F                      24      TRAP    #15
-0000100C                            25  
-0000100C                            26  
-0000100C                            27   
-0000100C                            28      
-0000100C                            29      
-0000100C                            30  ;************************Get Starting Address**************************** 
-0000100C                            31  
-0000100C                            32  
-0000100C                            33  
-0000100C                            34  
-0000100C                            35  
-0000100C                            36  
-0000100C                            37      
-0000100C                            38      
-0000100C                            39  ;************************Get Ending Address**************************** 
-0000100C                            40  
-0000100C                            41  
-0000100C                            42  
-0000100C                            43  
-0000100C                            44  
-0000100C                            45  
-0000100C                            46  
-0000100C                            47  
-0000100C                            48  
-0000100C                            49  ;************************Main Loop????**************************** 
-0000100C                            50  
-0000100C                            51  
-0000100C                            52  
-0000100C                            53  
-0000100C                            54  
-0000100C                            55     
-0000100C                            56      
-0000100C                            57  
-0000100C  FFFF FFFF                 58      SIMHALT             ; halt simulator
-00001010                            59  
-00001010                            60  ;jump table
-00001010                            61  
-00001010                            62  
-00001010= 57 65 6C 63 6F 6D ...     63  welcome_message     DC.B    'Welcome to 68k disassembler',CR,LF,0
-0000102E                            64  
-0000102E                            65      END    START        ; last line of source
+00001000                            16      ORG    $1000
+00001000                            17  START:                  ; first instruction of program
+00001000                            18  
+00001000                            19  ;************************Welcome Message**************************** 
+00001000  43F9 000010B2             20      LEA     welcome_message,A1      ;load the welcome message into A1
+00001006  103C 000E                 21      MOVE.B  #14,D0
+0000100A  4E4F                      22      TRAP    #15                     ;print contents of welcome_message
+0000100C                            23      
+0000100C                            24  ;************************Get Starting Address**************************** 
+0000100C  103C 000E                 25      MOVE.B  #14,D0    
+00001010  43F9 000010D0             26      LEA     get_start_address,A1    ;load the get_start_address message into A1
+00001016  4E4F                      27      TRAP    #15                     ;print get_start_address
+00001018                            28      
+00001018  43F9 0000115C             29      LEA     ascii_start,A1          ;store
+0000101E  103C 0002                 30      MOVE.B  #2,D0                   ;get user input    
+00001022  4E4F                      31      TRAP    #15                     ;another trap to get input
+00001024  4EB9 0000104C             32      JSR     ATOI
+0000102A                            33      ;MOVE.B  #0,D0      ;printing out
+0000102A                            34      ;TRAP    #15        ;printing out
+0000102A                            35      
+0000102A                            36      
+0000102A                            37  
+0000102A                            38  
+0000102A                            39  
+0000102A                            40      
+0000102A                            41      
+0000102A                            42  ;************************Get Ending Address**************************** 
+0000102A  103C 000E                 43      MOVE.B  #14,D0
+0000102E  43F9 00001101             44      LEA     get_end_address,A1      ;load the get_end_address message into A1  
+00001034  4E4F                      45      TRAP    #15                     ;print get_end_address
+00001036                            46      
+00001036  43F9 00001170             47      LEA     ascii_end,A1            ;store 
+0000103C  103C 0002                 48      MOVE.B  #2,D0                   ;get user input
+00001040  4E4F                      49      TRAP    #15                     ;another trap to get intput
+00001042                            50  
+00001042  103C 0000                 51      MOVE.B  #0,D0      ;printing out
+00001046  4E4F                      52      TRAP    #15        ;printing out
+00001048                            53  
+00001048                            54  
+00001048                            55  
+00001048                            56  
+00001048                            57  ;************************Main Loop????**************************** 
+00001048                            58  
+00001048                            59  
+00001048                            60  
+00001048                            61  
+00001048                            62  
+00001048                            63     
+00001048                            64      
+00001048                            65  DONE:
+00001048  FFFF FFFF                 66      SIMHALT             ; halt simulator
+0000104C                            67  
+0000104C                            68  ;jump table
+0000104C                            69  
+0000104C                            70  ;************************ATOI***************************************
+0000104C                            71  ATOI:
+0000104C  2401                      72          MOVE.L      D1,D2                   ;loop variable (size) is in D2
+0000104E  2449                      73          MOVEA.L     A1,A2                   ;pointer to next char
+00001050                            74  
+00001050                            75  ATOI_LOOP  
+00001050  4243                      76          CLR         D3                      ;clear d3
+00001052  B43C 0000                 77          CMP.B       #0,D2
+00001056  67F0                      78          BEQ         DONE
+00001058  5382                      79          SUBI.L      #1,D2                   ;subtract 1 from loop counter
+0000105A  1612                      80          MOVE.B      (A2),D3                 ;move current byte to D3, then increment to next
+0000105C  B63C 002F                 81          CMP.B       #$2F,D3
+00001060  6F00 0050                 82          BLE         ATOI_ERROR              ;if less than 30, not a number, branch to error
+00001064  B63C 0039                 83          CMP.B       #$39,D3                 ;check byte to see if number or letter
+00001068  6F00 002A                 84          BLE         ATOI_NUMBER             ;30<x<39 --> number
+0000106C  B63C 0040                 85          CMP.B       #$40,D3
+00001070  6F00 0040                 86          BLE         ATOI_ERROR
+00001074  B63C 0046                 87          CMP.B       #$46,D3
+00001078  6F00 0024                 88          BLE         ATOI_UPPERCASE_LETTER   ;less than 47, it is uppercase letter
+0000107C  B63C 0060                 89          CMP.B       #$60,D3
+00001080  6F00 0030                 90          BLE         ATOI_ERROR
+00001084  B63C 0066                 91          CMP.B       #$66,D3
+00001088  6F00 001E                 92          BLE         ATOI_LOWERCASE_LETTER
+0000108C  B63C 0067                 93          CMP.B       #$67,D3
+00001090  6C00 0020                 94          BGE         ATOI_ERROR
+00001094                            95          
+00001094                            96          ;BNE         ATOI_LOOP                    ;run loop
+00001094                            97      
+00001094                            98  
+00001094                            99  ATOI_NUMBER
+00001094                           100  ;number --> d1 = d1 - $30
+00001094  0403 0030                101      SUBI.B          #$30, D3                    ;subtract 30 if number
+00001098  14C3                     102      MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
+0000109A  4EF8 1050                103      JMP             ATOI_LOOP                   ;loop
+0000109E                           104  
+0000109E                           105  ATOI_UPPERCASE_LETTER
+0000109E                           106  ;letter --> d1 = d1 - $37
+0000109E  0403 0037                107      SUBI.B          #$37,D3                     ;subtract 37 if UPPER case letter
+000010A2  14C3                     108      MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
+000010A4  4EF8 1050                109      JMP             ATOI_LOOP                   ;loop
+000010A8                           110  
+000010A8                           111  ATOI_LOWERCASE_LETTER
+000010A8  0403 0057                112      SUBI.B          #$57,D3                     ;subtract 57(20 + 37)
+000010AC  14C3                     113      MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
+000010AE  4EF8 1050                114      JMP             ATOI_LOOP                   ;loop
+000010B2                           115  
+000010B2                           116  ATOI_ERROR
+000010B2                           117      ;come back to handle error when out of range
+000010B2                           118      
+000010B2                           119      
+000010B2                           120  ;******************** MESSAGES ***************************************
+000010B2= 57 65 6C 63 6F 6D ...    121  welcome_message         DC.B    'Welcome to 68k disassembler',CR,LF,0
+000010D0                           122  
+000010D0= 50 6C 65 61 73 65 ...    123  get_start_address       DC.B    'Please enter a starting address in hexadecimal',CR,LF,0
+00001101                           124  
+00001101= 50 6C 65 61 73 65 ...    125  get_end_address         DC.B    'Please enter an ending address in hexadecimal',CR,LF,0
+00001131                           126  
+00001131= 49 6E 76 61 6C 69 ...    127  atoi_error_invalid      DC.B    'Invalid address, characters must be $0-F',CR,LF,0
+0000115C                           128  
+0000115C                           129  ascii_start:
+0000115C                           130      DS.w    10          ;specify size later?
+00001170                           131      
+00001170                           132  ascii_end:
+00001170                           133      DS.w    10          ;specify size later?
+00001184                           134  
+00001184                           135      
+00001184                           136  
+00001184                           137      END    START        ; last line of source
 
 No errors detected
 No warnings generated
@@ -75,7 +147,22 @@ No warnings generated
 SYMBOL TABLE INFORMATION
 Symbol-name         Value
 -------------------------
+ASCII_END           1170
+ASCII_START         115C
+ATOI                104C
+ATOI_ERROR          10B2
+ATOI_ERROR_INVALID  1131
+ATOI_LOOP           1050
+ATOI_LOWERCASE_LETTER  10A8
+ATOI_NUMBER         1094
+ATOI_UPPERCASE_LETTER  109E
+BUFFER_SIZE         40
 CR                  D
+DONE                1048
+GET_END_ADDRESS     1101
+GET_START_ADDRESS   10D0
 LF                  A
+LINES_PER_SCREEN    1E
+STACK               A0000
 START               1000
-WELCOME_MESSAGE     1010
+WELCOME_MESSAGE     10B2
