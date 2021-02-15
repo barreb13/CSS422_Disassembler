@@ -1,11 +1,11 @@
 *-----------------------------------------------------------
-* Title      : Disassembler
+* Title      : Disassembler V1.1
 * Written by : Brent and Parker
 * Date       : 2/5/2021
 * Description: Final Project for CSS 422
 *-----------------------------------------------------------
 
-;************************Define Constants**************************** 
+;************************ Define Constants ********************************* 
 CR                  EQU     $0D     ;carriage return
 LF                  EQU     $0a     ;line feed
 stack               EQU     $000A0000
@@ -16,12 +16,12 @@ buffer_size         EQU     64
     ORG    $1000
 START:                  ; first instruction of program
 
-;************************Welcome Message**************************** 
+;***************************** Welcome Message ********************************** 
     LEA     welcome_message,A1      ;load the welcome message into A1
     MOVE.B  #14,D0
     TRAP    #15                     ;print contents of welcome_message
     
-;************************Get Starting Address**************************** 
+;****************************** Get Starting Address ***************************** 
     MOVE.B  #14,D0    
     LEA     get_start_address,A1    ;load the get_start_address message into A1
     TRAP    #15                     ;print get_start_address
@@ -30,8 +30,8 @@ START:                  ; first instruction of program
     MOVE.B  #2,D0                   ;get user input    
     TRAP    #15                     ;another trap to get input
     JSR     ATOI
-    ;MOVE.B  #0,D0      ;printing out
-    ;TRAP    #15        ;printing out
+    ;MOVE.B  #0,D0                  ;printing out
+    ;TRAP    #15                    ;printing out
     
     
 
@@ -39,7 +39,7 @@ START:                  ; first instruction of program
 
     
     
-;************************Get Ending Address**************************** 
+;*************************** Get Ending Address ******************************* 
     MOVE.B  #14,D0
     LEA     get_end_address,A1      ;load the get_end_address message into A1  
     TRAP    #15                     ;print get_end_address
@@ -48,13 +48,13 @@ START:                  ; first instruction of program
     MOVE.B  #2,D0                   ;get user input
     TRAP    #15                     ;another trap to get intput
 
-    MOVE.B  #0,D0      ;printing out
-    TRAP    #15        ;printing out
+    MOVE.B  #0,D0                   ;printing out
+    TRAP    #15                     ;printing out
 
 
 
 
-;************************Main Loop????**************************** 
+;****************************** Main Loop???? ************************************ 
 
 
 
@@ -63,11 +63,11 @@ START:                  ; first instruction of program
    
     
 DONE:
-    SIMHALT             ; halt simulator
+    SIMHALT                                 ; halt simulator
 
 ;jump table
 
-;************************ATOI***************************************
+;******************************** ATOI *********************************************
 ATOI:
         MOVE.L      D1,D2                   ;loop variable (size) is in D2
         MOVEA.L     A1,A2                   ;pointer to next char
@@ -145,7 +145,8 @@ ascii_end:
 
 
 
+
 *~Font name~Courier New~
-*~Font size~18~
+*~Font size~12~
 *~Tab type~1~
 *~Tab size~4~

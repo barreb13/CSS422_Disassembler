@@ -1,15 +1,15 @@
 00001000 Starting Address
 Assembler used: EASy68K Editor/Assembler v5.16.01
-Created On: 2/12/2021 3:24:21 PM
+Created On: 2/15/2021 3:47:42 PM
 
 00000000                             1  *-----------------------------------------------------------
-00000000                             2  * Title      : Disassembler
+00000000                             2  * Title      : Disassembler V1.1
 00000000                             3  * Written by : Brent and Parker
 00000000                             4  * Date       : 2/5/2021
 00000000                             5  * Description: Final Project for CSS 422
 00000000                             6  *-----------------------------------------------------------
 00000000                             7  
-00000000                             8  ;************************Define Constants**************************** 
+00000000                             8  ;************************ Define Constants ********************************* 
 00000000  =0000000D                  9  CR                  EQU     $0D     ;carriage return
 00000000  =0000000A                 10  LF                  EQU     $0a     ;line feed
 00000000  =000A0000                 11  stack               EQU     $000A0000
@@ -20,12 +20,12 @@ Created On: 2/12/2021 3:24:21 PM
 00001000                            16      ORG    $1000
 00001000                            17  START:                  ; first instruction of program
 00001000                            18  
-00001000                            19  ;************************Welcome Message**************************** 
+00001000                            19  ;***************************** Welcome Message ********************************** 
 00001000  43F9 000010B2             20      LEA     welcome_message,A1      ;load the welcome message into A1
 00001006  103C 000E                 21      MOVE.B  #14,D0
 0000100A  4E4F                      22      TRAP    #15                     ;print contents of welcome_message
 0000100C                            23      
-0000100C                            24  ;************************Get Starting Address**************************** 
+0000100C                            24  ;****************************** Get Starting Address ***************************** 
 0000100C  103C 000E                 25      MOVE.B  #14,D0    
 00001010  43F9 000010D0             26      LEA     get_start_address,A1    ;load the get_start_address message into A1
 00001016  4E4F                      27      TRAP    #15                     ;print get_start_address
@@ -34,8 +34,8 @@ Created On: 2/12/2021 3:24:21 PM
 0000101E  103C 0002                 30      MOVE.B  #2,D0                   ;get user input    
 00001022  4E4F                      31      TRAP    #15                     ;another trap to get input
 00001024  4EB9 0000104C             32      JSR     ATOI
-0000102A                            33      ;MOVE.B  #0,D0      ;printing out
-0000102A                            34      ;TRAP    #15        ;printing out
+0000102A                            33      ;MOVE.B  #0,D0                  ;printing out
+0000102A                            34      ;TRAP    #15                    ;printing out
 0000102A                            35      
 0000102A                            36      
 0000102A                            37  
@@ -43,7 +43,7 @@ Created On: 2/12/2021 3:24:21 PM
 0000102A                            39  
 0000102A                            40      
 0000102A                            41      
-0000102A                            42  ;************************Get Ending Address**************************** 
+0000102A                            42  ;*************************** Get Ending Address ******************************* 
 0000102A  103C 000E                 43      MOVE.B  #14,D0
 0000102E  43F9 00001101             44      LEA     get_end_address,A1      ;load the get_end_address message into A1  
 00001034  4E4F                      45      TRAP    #15                     ;print get_end_address
@@ -52,13 +52,13 @@ Created On: 2/12/2021 3:24:21 PM
 0000103C  103C 0002                 48      MOVE.B  #2,D0                   ;get user input
 00001040  4E4F                      49      TRAP    #15                     ;another trap to get intput
 00001042                            50  
-00001042  103C 0000                 51      MOVE.B  #0,D0      ;printing out
-00001046  4E4F                      52      TRAP    #15        ;printing out
+00001042  103C 0000                 51      MOVE.B  #0,D0                   ;printing out
+00001046  4E4F                      52      TRAP    #15                     ;printing out
 00001048                            53  
 00001048                            54  
 00001048                            55  
 00001048                            56  
-00001048                            57  ;************************Main Loop????**************************** 
+00001048                            57  ;****************************** Main Loop???? ************************************ 
 00001048                            58  
 00001048                            59  
 00001048                            60  
@@ -67,11 +67,11 @@ Created On: 2/12/2021 3:24:21 PM
 00001048                            63     
 00001048                            64      
 00001048                            65  DONE:
-00001048  FFFF FFFF                 66      SIMHALT             ; halt simulator
+00001048  FFFF FFFF                 66      SIMHALT                                 ; halt simulator
 0000104C                            67  
 0000104C                            68  ;jump table
 0000104C                            69  
-0000104C                            70  ;************************ATOI***************************************
+0000104C                            70  ;******************************** ATOI *********************************************
 0000104C                            71  ATOI:
 0000104C  2401                      72          MOVE.L      D1,D2                   ;loop variable (size) is in D2
 0000104E  2449                      73          MOVEA.L     A1,A2                   ;pointer to next char
