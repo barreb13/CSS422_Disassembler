@@ -1,8 +1,8 @@
 00001000 Starting Address
 Assembler used: EASy68K Editor/Assembler v5.16.01
-Created On: 2/15/2021 3:47:42 PM
+Created On: 2/16/2021 3:00:07 PM
 
-00000000                             1  *-----------------------------------------------------------
+00000000                             1      *-----------------------------------------------------------
 00000000                             2  * Title      : Disassembler V1.1
 00000000                             3  * Written by : Brent and Parker
 00000000                             4  * Date       : 2/5/2021
@@ -18,127 +18,149 @@ Created On: 2/15/2021 3:47:42 PM
 00000000                            14  
 00000000                            15  
 00001000                            16      ORG    $1000
-00001000                            17  START:                  ; first instruction of program
+00001000                            17  START:                              ;first instruction of program
 00001000                            18  
 00001000                            19  ;***************************** Welcome Message ********************************** 
-00001000  43F9 000010B2             20      LEA     welcome_message,A1      ;load the welcome message into A1
+00001000  43F9 000010C4             20      LEA     welcome_message,A1      ;load the welcome message into A1
 00001006  103C 000E                 21      MOVE.B  #14,D0
 0000100A  4E4F                      22      TRAP    #15                     ;print contents of welcome_message
 0000100C                            23      
-0000100C                            24  ;****************************** Get Starting Address ***************************** 
-0000100C  103C 000E                 25      MOVE.B  #14,D0    
-00001010  43F9 000010D0             26      LEA     get_start_address,A1    ;load the get_start_address message into A1
-00001016  4E4F                      27      TRAP    #15                     ;print get_start_address
-00001018                            28      
-00001018  43F9 0000115C             29      LEA     ascii_start,A1          ;store
-0000101E  103C 0002                 30      MOVE.B  #2,D0                   ;get user input    
-00001022  4E4F                      31      TRAP    #15                     ;another trap to get input
-00001024  4EB9 0000104C             32      JSR     ATOI
-0000102A                            33      ;MOVE.B  #0,D0                  ;printing out
-0000102A                            34      ;TRAP    #15                    ;printing out
+0000100C                            24  
+0000100C                            25  
+0000100C                            26  ;****************************** Get Starting Address ***************************** 
+0000100C  103C 000E                 27      MOVE.B  #14,D0    
+00001010  43F9 000010E2             28      LEA     get_start_address,A1    ;load the get_start_address message into A1
+00001016  4E4F                      29      TRAP    #15                     ;print get_start_address
+00001018                            30      
+00001018  43F9 0000116E             31      LEA     ascii_start,A1          ;store
+0000101E  103C 0002                 32      MOVE.B  #2,D0                   ;get user input    
+00001022  4E4F                      33      TRAP    #15                     ;another trap to get input
+00001024  4EB9 0000104E             34      JSR     ATOI                    ;address is now in hex format in memory location
 0000102A                            35      
-0000102A                            36      
-0000102A                            37  
-0000102A                            38  
-0000102A                            39  
-0000102A                            40      
-0000102A                            41      
-0000102A                            42  ;*************************** Get Ending Address ******************************* 
-0000102A  103C 000E                 43      MOVE.B  #14,D0
-0000102E  43F9 00001101             44      LEA     get_end_address,A1      ;load the get_end_address message into A1  
-00001034  4E4F                      45      TRAP    #15                     ;print get_end_address
-00001036                            46      
-00001036  43F9 00001170             47      LEA     ascii_end,A1            ;store 
-0000103C  103C 0002                 48      MOVE.B  #2,D0                   ;get user input
-00001040  4E4F                      49      TRAP    #15                     ;another trap to get intput
-00001042                            50  
-00001042  103C 0000                 51      MOVE.B  #0,D0                   ;printing out
-00001046  4E4F                      52      TRAP    #15                     ;printing out
-00001048                            53  
-00001048                            54  
-00001048                            55  
-00001048                            56  
-00001048                            57  ;****************************** Main Loop???? ************************************ 
-00001048                            58  
-00001048                            59  
-00001048                            60  
-00001048                            61  
-00001048                            62  
-00001048                            63     
-00001048                            64      
-00001048                            65  DONE:
-00001048  FFFF FFFF                 66      SIMHALT                                 ; halt simulator
-0000104C                            67  
-0000104C                            68  ;jump table
-0000104C                            69  
-0000104C                            70  ;******************************** ATOI *********************************************
-0000104C                            71  ATOI:
-0000104C  2401                      72          MOVE.L      D1,D2                   ;loop variable (size) is in D2
-0000104E  2449                      73          MOVEA.L     A1,A2                   ;pointer to next char
-00001050                            74  
-00001050                            75  ATOI_LOOP  
-00001050  4243                      76          CLR         D3                      ;clear d3
-00001052  B43C 0000                 77          CMP.B       #0,D2
-00001056  67F0                      78          BEQ         DONE
-00001058  5382                      79          SUBI.L      #1,D2                   ;subtract 1 from loop counter
-0000105A  1612                      80          MOVE.B      (A2),D3                 ;move current byte to D3, then increment to next
-0000105C  B63C 002F                 81          CMP.B       #$2F,D3
-00001060  6F00 0050                 82          BLE         ATOI_ERROR              ;if less than 30, not a number, branch to error
-00001064  B63C 0039                 83          CMP.B       #$39,D3                 ;check byte to see if number or letter
-00001068  6F00 002A                 84          BLE         ATOI_NUMBER             ;30<x<39 --> number
-0000106C  B63C 0040                 85          CMP.B       #$40,D3
-00001070  6F00 0040                 86          BLE         ATOI_ERROR
-00001074  B63C 0046                 87          CMP.B       #$46,D3
-00001078  6F00 0024                 88          BLE         ATOI_UPPERCASE_LETTER   ;less than 47, it is uppercase letter
-0000107C  B63C 0060                 89          CMP.B       #$60,D3
-00001080  6F00 0030                 90          BLE         ATOI_ERROR
-00001084  B63C 0066                 91          CMP.B       #$66,D3
-00001088  6F00 001E                 92          BLE         ATOI_LOWERCASE_LETTER
-0000108C  B63C 0067                 93          CMP.B       #$67,D3
-00001090  6C00 0020                 94          BGE         ATOI_ERROR
-00001094                            95          
-00001094                            96          ;BNE         ATOI_LOOP                    ;run loop
-00001094                            97      
-00001094                            98  
-00001094                            99  ATOI_NUMBER
-00001094                           100  ;number --> d1 = d1 - $30
-00001094  0403 0030                101      SUBI.B          #$30, D3                    ;subtract 30 if number
-00001098  14C3                     102      MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
-0000109A  4EF8 1050                103      JMP             ATOI_LOOP                   ;loop
-0000109E                           104  
-0000109E                           105  ATOI_UPPERCASE_LETTER
-0000109E                           106  ;letter --> d1 = d1 - $37
-0000109E  0403 0037                107      SUBI.B          #$37,D3                     ;subtract 37 if UPPER case letter
-000010A2  14C3                     108      MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
-000010A4  4EF8 1050                109      JMP             ATOI_LOOP                   ;loop
-000010A8                           110  
-000010A8                           111  ATOI_LOWERCASE_LETTER
-000010A8  0403 0057                112      SUBI.B          #$57,D3                     ;subtract 57(20 + 37)
-000010AC  14C3                     113      MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
-000010AE  4EF8 1050                114      JMP             ATOI_LOOP                   ;loop
-000010B2                           115  
-000010B2                           116  ATOI_ERROR
-000010B2                           117      ;come back to handle error when out of range
-000010B2                           118      
-000010B2                           119      
-000010B2                           120  ;******************** MESSAGES ***************************************
-000010B2= 57 65 6C 63 6F 6D ...    121  welcome_message         DC.B    'Welcome to 68k disassembler',CR,LF,0
-000010D0                           122  
-000010D0= 50 6C 65 61 73 65 ...    123  get_start_address       DC.B    'Please enter a starting address in hexadecimal',CR,LF,0
-00001101                           124  
-00001101= 50 6C 65 61 73 65 ...    125  get_end_address         DC.B    'Please enter an ending address in hexadecimal',CR,LF,0
-00001131                           126  
-00001131= 49 6E 76 61 6C 69 ...    127  atoi_error_invalid      DC.B    'Invalid address, characters must be $0-F',CR,LF,0
-0000115C                           128  
-0000115C                           129  ascii_start:
-0000115C                           130      DS.w    10          ;specify size later?
-00001170                           131      
-00001170                           132  ascii_end:
-00001170                           133      DS.w    10          ;specify size later?
-00001184                           134  
-00001184                           135      
-00001184                           136  
-00001184                           137      END    START        ; last line of source
+0000102A  2611                      36      MOVE.L  (A1),D3
+0000102C                            37      
+0000102C                            38  
+0000102C                            39  
+0000102C                            40  
+0000102C                            41      
+0000102C                            42      
+0000102C                            43  ;*************************** Get Ending Address ******************************* 
+0000102C  103C 000E                 44      MOVE.B  #14,D0
+00001030  43F9 00001113             45      LEA     get_end_address,A1      ;load the get_end_address message into A1  
+00001036  4E4F                      46      TRAP    #15                     ;print get_end_address
+00001038                            47      
+00001038  43F9 00001182             48      LEA     ascii_end,A1            ;store 
+0000103E  103C 0002                 49      MOVE.B  #2,D0                   ;get user input
+00001042  4E4F                      50      TRAP    #15                     ;another trap to get intput
+00001044  4EB9 0000104E             51      JSR ATOI
+0000104A                            52  
+0000104A                            53  
+0000104A                            54  
+0000104A                            55  
+0000104A                            56  ;****************************** Main Loop???? ************************************ 
+0000104A                            57  
+0000104A                            58  
+0000104A                            59  
+0000104A                            60  
+0000104A                            61  
+0000104A                            62     
+0000104A                            63      
+0000104A                            64  DONE:
+0000104A  FFFF FFFF                 65      SIMHALT                                 ; halt simulator
+0000104E                            66  
+0000104E                            67  ;jump table
+0000104E                            68  
+0000104E                            69  ;******************************** ATOI *********************************************
+0000104E                            70  ATOI:
+0000104E  2401                      71          MOVE.L      D1,D2                   ;loop variable (size) is in D2
+00001050  2449                      72          MOVEA.L     A1,A2                   ;pointer to next char
+00001052  4244                      73          CLR         D4
+00001054                            74  
+00001054                            75  ATOI_LOOP  
+00001054  4243                      76          CLR         D3                      ;clear d3
+00001056                            77          ;CMP.B       #0,D2
+00001056                            78          ;BEQ         ATOI_DONE               ;DONE
+00001056  5382                      79          SUBI.L      #1,D2                   ;subtract 1 from loop counter
+00001058  161A                      80          MOVE.B      (A2)+,D3                 ;move current byte to D3, then increment to next
+0000105A  B63C 002F                 81          CMP.B       #$2F,D3
+0000105E  6F00 0060                 82          BLE         ATOI_ERROR              ;if less than 30, not a number, branch to error
+00001062  B63C 0039                 83          CMP.B       #$39,D3                 ;check byte to see if number or letter
+00001066  6F00 002A                 84          BLE         ATOI_NUMBER             ;30<x<39 --> number
+0000106A  B63C 0040                 85          CMP.B       #$40,D3
+0000106E  6F00 0050                 86          BLE         ATOI_ERROR
+00001072  B63C 0046                 87          CMP.B       #$46,D3
+00001076  6F00 0024                 88          BLE         ATOI_UPPERCASE_LETTER   ;less than 47, it is uppercase letter
+0000107A  B63C 0060                 89          CMP.B       #$60,D3
+0000107E  6F00 0040                 90          BLE         ATOI_ERROR
+00001082  B63C 0066                 91          CMP.B       #$66,D3
+00001086  6F00 001E                 92          BLE         ATOI_LOWERCASE_LETTER
+0000108A  B63C 0067                 93          CMP.B       #$67,D3
+0000108E  6C00 0030                 94          BGE         ATOI_ERROR
+00001092                            95          
+00001092                            96          ;BNE         ATOI_LOOP                    ;run loop
+00001092                            97      
+00001092                            98  
+00001092                            99  ATOI_NUMBER
+00001092                           100  ;number --> d1 = d1 - $30
+00001092  0403 0030                101      SUBI.B          #$30, D3                    ;subtract 30 if number
+00001096                           102      ;MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
+00001096  4EF9 000010B0            103      JMP             ATOI_FORMAT                 ;testing
+0000109C                           104      ;JMP            ATOI_LOOP                   ;loop
+0000109C                           105  
+0000109C                           106  ATOI_UPPERCASE_LETTER
+0000109C                           107  ;letter --> d1 = d1 - $37
+0000109C  0403 0037                108      SUBI.B          #$37,D3                     ;subtract 37 if UPPER case letter
+000010A0                           109      ;MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
+000010A0  4EF9 000010B0            110      JMP             ATOI_FORMAT                 ;testing
+000010A6                           111      ;JMP            ATOI_LOOP                   ;loop
+000010A6                           112  
+000010A6                           113  ATOI_LOWERCASE_LETTER
+000010A6  0403 0057                114      SUBI.B          #$57,D3                     ;subtract 57(20 + 37)
+000010AA                           115      ;MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
+000010AA  4EF9 000010B0            116      JMP             ATOI_FORMAT                 ;testing
+000010B0                           117      ;JMP            ATOI_LOOP                  ;loop
+000010B0                           118  
+000010B0                           119  
+000010B0                           120  ATOI_FORMAT
+000010B0  D803                     121      ADD.B           D3,D4                       ;add the byte to D4 so can add later   
+000010B2  B43C 0000                122      CMP.B           #0,D2                       
+000010B6  6700 0008                123      BEQ             ATOI_DONE                   ;check if done (loop counter D2 is at 0)
+000010BA  E984                     124      ASL.L           #4,D4                       ;logical shift left to make room
+000010BC  4EF8 1054                125      JMP             ATOI_LOOP                   ;go back to loop
+000010C0                           126  
+000010C0                           127  ATOI_ERROR
+000010C0                           128      ;come back to handle error when out of range
+000010C0                           129      
+000010C0                           130  
+000010C0                           131  
+000010C0                           132  ;****************************** Validate Addresses **************************************
+000010C0                           133  
+000010C0                           134  VALIDATE_BEGINNING:
+000010C0                           135      
+000010C0                           136  
+000010C0                           137  ATOI_DONE 
+000010C0  2284                     138      MOVE.L         D4,(A1)                                 
+000010C2  4E75                     139      RTS                                         ;used to RTS after a branch statement
+000010C4                           140  
+000010C4                           141      
+000010C4                           142  ;******************** MESSAGES ***************************************
+000010C4= 57 65 6C 63 6F 6D ...    143  welcome_message         DC.B    'Welcome to 68k disassembler',CR,LF,0
+000010E2                           144  
+000010E2= 50 6C 65 61 73 65 ...    145  get_start_address       DC.B    'Please enter a starting address in hexadecimal',CR,LF,0
+00001113                           146  
+00001113= 50 6C 65 61 73 65 ...    147  get_end_address         DC.B    'Please enter an ending address in hexadecimal',CR,LF,0
+00001143                           148  
+00001143= 49 6E 76 61 6C 69 ...    149  atoi_error_invalid      DC.B    'Invalid address, characters must be $0-F',CR,LF,0
+0000116E                           150  
+0000116E                           151  ascii_start:
+0000116E                           152      DS.w    10          ;specify size later?
+00001182                           153      
+00001182                           154  ascii_end:
+00001182                           155      DS.w    10          ;specify size later?
+00001196                           156  
+00001196                           157      
+00001196                           158  
+00001196                           159      END    START        ; last line of source
 
 No errors detected
 No warnings generated
@@ -147,22 +169,25 @@ No warnings generated
 SYMBOL TABLE INFORMATION
 Symbol-name         Value
 -------------------------
-ASCII_END           1170
-ASCII_START         115C
-ATOI                104C
-ATOI_ERROR          10B2
-ATOI_ERROR_INVALID  1131
-ATOI_LOOP           1050
-ATOI_LOWERCASE_LETTER  10A8
-ATOI_NUMBER         1094
-ATOI_UPPERCASE_LETTER  109E
+ASCII_END           1182
+ASCII_START         116E
+ATOI                104E
+ATOI_DONE           10C0
+ATOI_ERROR          10C0
+ATOI_ERROR_INVALID  1143
+ATOI_FORMAT         10B0
+ATOI_LOOP           1054
+ATOI_LOWERCASE_LETTER  10A6
+ATOI_NUMBER         1092
+ATOI_UPPERCASE_LETTER  109C
 BUFFER_SIZE         40
 CR                  D
-DONE                1048
-GET_END_ADDRESS     1101
-GET_START_ADDRESS   10D0
+DONE                104A
+GET_END_ADDRESS     1113
+GET_START_ADDRESS   10E2
 LF                  A
 LINES_PER_SCREEN    1E
 STACK               A0000
 START               1000
-WELCOME_MESSAGE     10B2
+VALIDATE_BEGINNING  10C0
+WELCOME_MESSAGE     10C4
