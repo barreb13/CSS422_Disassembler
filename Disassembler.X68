@@ -1,7 +1,7 @@
 *-----------------------------------------------------------
-* Title      : Disassembler V1.2
+* Title      : Disassembler V1.3
 * Written by : Brent and Parker
-* Date       : 2/5/2021
+* Date       : 2/19/2021
 * Description: Final Project for CSS 422
 *-----------------------------------------------------------
 
@@ -30,14 +30,16 @@ right24             EQU     24      ;shift 24 to extract 1st byte
 
     ORG    $1000
 START:                              ;first instruction of program
+    LEA     stack, SP               ;SP @ $A0000
 
+WELCOME:
 ;***************************** Welcome Message ********************************** 
     LEA     welcome_message,A1      ;load the welcome message into A1
     MOVE.B  #14,D0
     TRAP    #15                     ;print contents of welcome_message
     
 
-
+GET_STARTING_ADDRESS:
 ;****************************** Get Starting Address ***************************** 
     MOVE.B  #14,D0    
     LEA     get_start_address,A1    ;load the get_start_address message into A1
@@ -51,7 +53,12 @@ START:                              ;first instruction of program
     ;??                             MOVE.L  (A1),D3
     
     ;perform checks (later)
- 
+    
+    
+    MOVE.l    (ascii_start),D5      ;load into A5
+    MOVE.l    D5,A5                ;load into A5
+
+GET_ENDING_ADDRESS: 
 ;*************************** Get Ending Address ******************************* 
     MOVE.B  #14,D0
     LEA     get_end_address,A1      ;load the get_end_address message into A1  
@@ -64,29 +71,93 @@ START:                              ;first instruction of program
 
     ;perform checks (later)
 
+    MOVE.l    (ascii_end),D6      ;load into A5
+    MOVE.l    D6,A6               ;load into A5
+
+
+
+
+
+
+
+
 
 ;****************************** Main Loop???? ************************************ 
 ;get pointer to first given address
 ;pull hex code from that address and store in A1?
 ;take hex code and go to OP_TABLE
 
-MAIN:
-    JSR     START_OPCODE                   ;get complete line of instruction to decode   
 
+;A5 = starting address
+;A6 = ending address
+START_DECODING:
+    ;CLR.L   D2                             ;clear screen line counter
 
-
+DECODING_LOOP:
+    JSR     OP_START                       ;get complete line of instruction to decode   
+    ;print tot screen
+    
+    ;check if finished or if screen is filled
+    ;handle checks
    
     
 DONE:
     SIMHALT                                 ; halt simulator
 
 
-START_OPCODE: 
 
 
 
-CLEAR_BUFFER:
 
+
+
+
+
+
+;A2 = buffer (this is our decoded string that will print to screen)
+;A5 = starting address / current address in memory
+;D2 =
+
+OP_START
+    ;get complete line? 
+    ;everything happens in here
+    
+    ;MOVEM.L         D2/A6, -(SP)
+
+    JSR             OP_DATA_CLR         ;clear buffer
+    LEA             buffer, A2          ;A2 now points to buffer, which is cleared
+    
+
+    ;print out current mem address by putting into buffer and then adding a ' '
+    MOVE.L          #$0003,D2           ;? BINARY --> 0011 ?
+    JSR             ITOA                ;convert A5 (current address) to ASCII and put in buffer
+    MOVE.B          #$09, (A2)+         ;adds a ' ' to buffer
+    
+    ;at this point buffer has the memory address and a space, ready for op code
+    
+    LEA             OP_TABLE, A0
+    CLR.L           D0
+    MOVE.W          (A5)+,D0            ;moves opcode from current address into D0
+    MOVE.L          D0,D1               ;should move word size into D1
+    MOVE.B          #right12,D2         ;move immediate value 12 into D2
+    LSR.W           D2,D1               ;shift D1 by 12 bits, leaving just 4 bits (this is our opcode???)
+    MULU            #6,D1               ;computes opcode table jump displacement
+    JMP             0(A0,D1)            ;jumps to opcode table entry (A0 = OP_TABLE)
+
+OP_FINISH:
+    MOVEM.L         (SP)+, D2/A6
+    RTS
+
+
+OP_DATA_CLR:
+    CLR.L           D3                  ; ? What is D3????
+    MOVE.B          buffer_size,D3      ; put 64 into D3
+    LEA             buffer, A4         ; what address register?
+
+OP_DATA_CLR_LOOP:
+    MOVE.B          #0, (A4)+
+    SUBI            #1, D3
+    BGT             OP_DATA_CLR_LOOP
 
 ;********************************* jump table ****************************************
 
@@ -125,7 +196,7 @@ opcode0010:
 
 
 opcode0011:
-
+;PRINT move or movea or ...
 
 
 
@@ -540,9 +611,12 @@ ascii_start:
 ascii_end:
     DS.w    10          ;specify size later?
 
+buffer                  ;storing op code
+    DS.W    64          ;do we leave as .w or change to .l ?
     
 
     END    START        ; last line of source
+
 
 
 
