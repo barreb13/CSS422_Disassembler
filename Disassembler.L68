@@ -1,11 +1,11 @@
 00001000 Starting Address
 Assembler used: EASy68K Editor/Assembler v5.16.01
-Created On: 2/19/2021 10:39:55 AM
+Created On: 2/22/2021 12:33:06 PM
 
 00000000                             1  *-----------------------------------------------------------
-00000000                             2  * Title      : Disassembler V1.2
+00000000                             2  * Title      : Disassembler V1.3
 00000000                             3  * Written by : Brent and Parker
-00000000                             4  * Date       : 2/5/2021
+00000000                             4  * Date       : 2/19/2021
 00000000                             5  * Description: Final Project for CSS 422
 00000000                             6  *-----------------------------------------------------------
 00000000                             7  
@@ -38,7 +38,7 @@ Created On: 2/19/2021 10:39:55 AM
 00001006                            34  
 00001006                            35  WELCOME:
 00001006                            36  ;***************************** Welcome Message ********************************** 
-00001006  43F9 00001144             37      LEA     welcome_message,A1      ;load the welcome message into A1
+00001006  43F9 000011E8             37      LEA     welcome_message,A1      ;load the welcome message into A1
 0000100C  103C 000E                 38      MOVE.B  #14,D0
 00001010  4E4F                      39      TRAP    #15                     ;print contents of welcome_message
 00001012                            40      
@@ -46,523 +46,675 @@ Created On: 2/19/2021 10:39:55 AM
 00001012                            42  GET_STARTING_ADDRESS:
 00001012                            43  ;****************************** Get Starting Address ***************************** 
 00001012  103C 000E                 44      MOVE.B  #14,D0    
-00001016  43F9 00001162             45      LEA     get_start_address,A1    ;load the get_start_address message into A1
+00001016  43F9 00001206             45      LEA     get_start_address,A1    ;load the get_start_address message into A1
 0000101C  4E4F                      46      TRAP    #15                     ;print get_start_address
 0000101E                            47      
-0000101E  43F9 000011EE             48      LEA     ascii_start,A1          ;store
+0000101E  43F9 00001292             48      LEA     ascii_start,A1          ;store
 00001024  103C 0002                 49      MOVE.B  #2,D0                   ;get user input    
 00001028  4E4F                      50      TRAP    #15                     ;another trap to get input
-0000102A  4EB9 000010CE             51      JSR     ATOI                    ;address is now in hex format in memory location
+0000102A  4EB9 0000111C             51      JSR     ATOI                    ;address is now in hex format in memory location
 00001030                            52      
 00001030                            53      ;??                             MOVE.L  (A1),D3
 00001030                            54      
 00001030                            55      ;perform checks (later)
 00001030                            56      
 00001030                            57      
-00001030  2A39 000011EE             58      MOVE.l    (ascii_start),D5      ;load into A5
+00001030  2A39 00001292             58      MOVE.l    (ascii_start),D5      ;load into A5
 00001036  2A45                      59      MOVE.l    D5,A5                ;load into A5
 00001038                            60  
 00001038                            61  GET_ENDING_ADDRESS: 
 00001038                            62  ;*************************** Get Ending Address ******************************* 
 00001038  103C 000E                 63      MOVE.B  #14,D0
-0000103C  43F9 00001193             64      LEA     get_end_address,A1      ;load the get_end_address message into A1  
+0000103C  43F9 00001237             64      LEA     get_end_address,A1      ;load the get_end_address message into A1  
 00001042  4E4F                      65      TRAP    #15                     ;print get_end_address
 00001044                            66      
-00001044  43F9 00001202             67      LEA     ascii_end,A1            ;store 
+00001044  43F9 000012A6             67      LEA     ascii_end,A1            ;store 
 0000104A  103C 0002                 68      MOVE.B  #2,D0                   ;get user input
 0000104E  4E4F                      69      TRAP    #15                     ;another trap to get intput
-00001050  4EB9 000010CE             70      JSR ATOI
+00001050  4EB9 0000111C             70      JSR ATOI
 00001056                            71  
 00001056                            72      ;perform checks (later)
 00001056                            73  
-00001056  2C39 00001202             74      MOVE.l    (ascii_end),D6      ;load into A5
-0000105C  2C46                      75      MOVE.l    D6,A6                ;load into A5
+00001056  2C39 000012A6             74      MOVE.l    (ascii_end),D6      ;load into A6
+0000105C  2C46                      75      MOVE.l    D6,A6               ;load into A6
 0000105E                            76  
-0000105E                            77  ;****************************** Main Loop???? ************************************ 
-0000105E                            78  ;get pointer to first given address
-0000105E                            79  ;pull hex code from that address and store in A1?
-0000105E                            80  ;take hex code and go to OP_TABLE
+0000105E                            77  
+0000105E                            78  
+0000105E                            79  
+0000105E                            80  
 0000105E                            81  
-0000105E                            82  START_DECODING:
-0000105E                            83      ;CLR.L   D2                             ;clear screen line counter
+0000105E                            82  
+0000105E                            83  
 0000105E                            84  
-0000105E                            85  DECODING_LOOP:
-0000105E  4EB9 00001068             86      JSR     START_OPCODE                   ;get complete line of instruction to decode   
-00001064                            87      ;print tot screen
-00001064                            88      
-00001064                            89      ;check if finished or if screen is filled
-00001064                            90      ;handle checks
-00001064                            91     
-00001064                            92      
-00001064                            93  DONE:
-00001064  FFFF FFFF                 94      SIMHALT                                 ; halt simulator
-00001068                            95  
-00001068                            96  
-00001068                            97  START_OPCODE: 
-00001068                            98      ;get complete line? 
-00001068                            99      ;everything happens in here
-00001068                           100      
-00001068                           101  
-00001068                           102  CLEAR_BUFFER:
-00001068                           103  
-00001068                           104  
-00001068                           105  ;********************************* jump table ****************************************
+0000105E                            85  ;************************************ Main Loop???? ************************************************** 
+0000105E                            86  ;get pointer to first given address
+0000105E                            87  ;pull hex code from that address and store in A1?
+0000105E                            88  ;take hex code and go to OP_TABLE
+0000105E                            89  
+0000105E                            90  
+0000105E                            91  ;A5 = starting address
+0000105E                            92  ;A6 = ending address
+0000105E                            93  START_DECODING:
+0000105E                            94      ;CLR.L   D2                             ;clear screen line counter
+0000105E                            95  
+0000105E                            96  DECODING_LOOP:
+0000105E  4EB9 00001068             97      JSR     OP_START                       ;get complete line of instruction to decode   
+00001064                            98      ;print tot screen
+00001064                            99      
+00001064                           100      ;check if finished or if screen is filled
+00001064                           101      ;handle checks
+00001064                           102     
+00001064                           103      
+00001064                           104  DONE:
+00001064  FFFF FFFF                105      SIMHALT                                 ; halt simulator
 00001068                           106  
-00001068                           107  OP_TABLE:
-00001068  4EF9 000010C8            108          JMP         opcode0000              ;ORI (ANDI, SUBI, ADDI, EORI, CMPI)
-0000106E  4EF9 000010CE            109          JMP         opcode0001              ;MOVE.B
-00001074  4EF9 000010CE            110          JMP         opcode0010              ;MOVEA.L, MOVE.L
-0000107A  4EF9 000010CE            111          JMP         opcode0011              ;MOVEA.W MOVE.W
-00001080  4EF9 000010CE            112          JMP         opcode0100              ;NOP, MOVEM, LEA (CLR, NOT, EXT, TRAP, STOP, RTE, RTS, JSR, JMP
-00001086  4EF9 000010CE            113          JMP         opcode0101              ;ADDQ (SUBQ)
-0000108C  4EF9 000010CE            114          JMP         opcode0110              ;BRA.bw, BSR.bw (BEQ)
-00001092  4EF9 000010CE            115          JMP         opcode0111              ;MOVEQ.l
-00001098  4EF9 000010CE            116          JMP         opcode1000              ;DIVU (DIVS, OR)
-0000109E  4EF9 000010CE            117          JMP         opcode1001              ;SUB
-000010A4  4EF9 000010CE            118          JMP         opcode1010              ;not assigned
-000010AA  4EF9 000010CE            119          JMP         opcode1011              ;CMP (EOR)
-000010B0  4EF9 000010CE            120          JMP         opcode1100              ;MULU (MULS, AND)
-000010B6  4EF9 000010CE            121          JMP         opcode1101              ;ADD, ADDA
-000010BC  4EF9 000010CE            122          JMP         opcode1110              ;ASL, ASR (LSL, LSR, ROL, ROR)
-000010C2  4EF9 000010CE            123          JMP         opcode1111              ;not assigned
-000010C8                           124  
-000010C8                           125  
-000010C8                           126  opcode0000:
-000010C8  2200                     127          MOVE.L      D0,D1
-000010CA  0241 0F00                128          ANDI.W      #nibble2,D1
-000010CE                           129  
-000010CE                           130  
-000010CE                           131  opcode0001:
-000010CE                           132  
-000010CE                           133  
-000010CE                           134  
-000010CE                           135  
-000010CE                           136  opcode0010:
-000010CE                           137  
-000010CE                           138  
-000010CE                           139  
-000010CE                           140  
-000010CE                           141  opcode0011:
-000010CE                           142  
-000010CE                           143  
-000010CE                           144  
-000010CE                           145  
-000010CE                           146  opcode0100:
-000010CE                           147  
-000010CE                           148  
-000010CE                           149  
-000010CE                           150  
-000010CE                           151  opcode0101:
-000010CE                           152  
-000010CE                           153  
-000010CE                           154  
-000010CE                           155  
-000010CE                           156  opcode0110:
-000010CE                           157  
-000010CE                           158  
-000010CE                           159  
-000010CE                           160  
-000010CE                           161  opcode0111:
-000010CE                           162  
-000010CE                           163  
-000010CE                           164  
-000010CE                           165  
-000010CE                           166  opcode1000:
-000010CE                           167  
-000010CE                           168  
-000010CE                           169  
-000010CE                           170  
-000010CE                           171  opcode1001:
-000010CE                           172  
-000010CE                           173  
-000010CE                           174  
-000010CE                           175  
-000010CE                           176  opcode1010:
-000010CE                           177  
-000010CE                           178  
-000010CE                           179  
-000010CE                           180  
-000010CE                           181  opcode1011:
-000010CE                           182  
-000010CE                           183  
-000010CE                           184  
-000010CE                           185  
-000010CE                           186  opcode1100:
-000010CE                           187  
-000010CE                           188  
-000010CE                           189  
-000010CE                           190  
-000010CE                           191  opcode1101:
-000010CE                           192  
-000010CE                           193  
-000010CE                           194  
-000010CE                           195  
-000010CE                           196  opcode1110:
-000010CE                           197  
-000010CE                           198  
-000010CE                           199  
-000010CE                           200  
-000010CE                           201  opcode1111:
-000010CE                           202  
-000010CE                           203  
-000010CE                           204  
-000010CE                           205  ;******************************** OP_XXX_TABLES ************************************
-000010CE                           206  
-000010CE                           207  OP_0000_TABLE:
-000010CE                           208             
-000010CE                           209  
-000010CE                           210  
-000010CE                           211  OP_0001_TABLE:
-000010CE                           212  
-000010CE                           213  
-000010CE                           214  
-000010CE                           215  OP_0010_TABLE:
-000010CE                           216  
-000010CE                           217  
-000010CE                           218  
-000010CE                           219  OP_0011_TABLE:
-000010CE                           220  
-000010CE                           221  
-000010CE                           222  
-000010CE                           223  OP_0100_TABLE:
-000010CE                           224  
-000010CE                           225  
-000010CE                           226  
-000010CE                           227  OP_0101_TABLE:
-000010CE                           228  
-000010CE                           229  
-000010CE                           230  
-000010CE                           231  OP_0110_TABLE:
-000010CE                           232  
-000010CE                           233  
-000010CE                           234  
-000010CE                           235  OP_0111_TABLE:
-000010CE                           236  
-000010CE                           237  
-000010CE                           238  
-000010CE                           239  OP_1000_TABLE:
-000010CE                           240  
-000010CE                           241  
-000010CE                           242  
-000010CE                           243  OP_1001_TABLE:
-000010CE                           244  
-000010CE                           245  
-000010CE                           246  
-000010CE                           247  OP_1010_TABLE:
-000010CE                           248  
-000010CE                           249  
-000010CE                           250  
-000010CE                           251  OP_1011_TABLE:
-000010CE                           252  
-000010CE                           253  
-000010CE                           254  
-000010CE                           255  OP_1100_TABLE:
-000010CE                           256  
-000010CE                           257  
-000010CE                           258  
-000010CE                           259  OP_1101_TABLE:
-000010CE                           260  
-000010CE                           261  
-000010CE                           262  
-000010CE                           263  OP_1110_TABLE:
-000010CE                           264  
-000010CE                           265  
-000010CE                           266  
-000010CE                           267  OP_1111_TABLE:
-000010CE                           268  
-000010CE                           269  
-000010CE                           270  ;******************************** OP_INSTRUCTION_XXXX******************************************
-000010CE                           271  
-000010CE                           272  OP_ORI:
-000010CE                           273  ;ATUALLY PRINTING CODE
-000010CE                           274  ;
-000010CE                           275  
-000010CE                           276  
-000010CE                           277  
-000010CE                           278  OP_ANDI:  ;(optional)
-000010CE                           279  
-000010CE                           280  
-000010CE                           281  
-000010CE                           282  
-000010CE                           283  OP_SUBI:  ;(optional)
-000010CE                           284  
-000010CE                           285  
-000010CE                           286  
-000010CE                           287  OP_ADDI:  ;(optional)
-000010CE                           288  
-000010CE                           289  
-000010CE                           290  
-000010CE                           291  OP_EORI:  ;(optional)
-000010CE                           292  
-000010CE                           293  
-000010CE                           294  
-000010CE                           295  OP_CMPI:  ;(optional)
-000010CE                           296  
-000010CE                           297  
-000010CE                           298  
-000010CE                           299  OP_MOVE.B:
-000010CE                           300  
-000010CE                           301  
-000010CE                           302  
-000010CE                           303  OP_MOVEA.L:
-000010CE                           304  
-000010CE                           305  
-000010CE                           306  
-000010CE                           307  OP_MOVE.L:
-000010CE                           308  
-000010CE                           309  
-000010CE                           310  
-000010CE                           311  OP_MOVEA.W:
-000010CE                           312  
-000010CE                           313  
-000010CE                           314  
-000010CE                           315  OP_MOVE.W:
-000010CE                           316  
-000010CE                           317  
-000010CE                           318  
-000010CE                           319  OP_NOP:
-000010CE                           320  
-000010CE                           321  
-000010CE                           322  
-000010CE                           323  OP_MOVEM:
-000010CE                           324  
-000010CE                           325  
-000010CE                           326  
-000010CE                           327  OP_LEA:
-000010CE                           328  
-000010CE                           329  
-000010CE                           330  
-000010CE                           331  OP_CLR:  ;(optional)
-000010CE                           332  
-000010CE                           333  
-000010CE                           334  
-000010CE                           335  OP_NOT:  ;(optional)
-000010CE                           336  
-000010CE                           337  
-000010CE                           338  
-000010CE                           339  OP_EXT:  ;(optional)
-000010CE                           340  
-000010CE                           341  
-000010CE                           342  
-000010CE                           343  OP_TRAP:  ;(optional)
-000010CE                           344  
-000010CE                           345  
-000010CE                           346   
-000010CE                           347  OP_STOP:  ;(optional)
-000010CE                           348  
-000010CE                           349  
-000010CE                           350  
-000010CE                           351  OP_RTE:  ;(optional)
-000010CE                           352  
-000010CE                           353  
-000010CE                           354  
-000010CE                           355  OP_RTS:  ;(optional)
-000010CE                           356  
-000010CE                           357  
-000010CE                           358  
-000010CE                           359  OP_JSR:  ;(optional)
-000010CE                           360  
-000010CE                           361  
-000010CE                           362  
-000010CE                           363  OP_JMP:  ;(optional)
-000010CE                           364  
-000010CE                           365  
-000010CE                           366  
-000010CE                           367  OP_ADDQ:
-000010CE                           368  
-000010CE                           369  
-000010CE                           370  
-000010CE                           371  OP_SUBQ:  ;(optional)
-000010CE                           372  
-000010CE                           373  
-000010CE                           374  
-000010CE                           375  OP_BRA:                                     ;???? DO WE DEFINE SIZE HERE OR AFTER????
-000010CE                           376  
-000010CE                           377  
-000010CE                           378  
-000010CE                           379  OP_BSR:
-000010CE                           380  
-000010CE                           381  
-000010CE                           382  
-000010CE                           383  OP_BEQ:
-000010CE                           384  
-000010CE                           385  
-000010CE                           386  
-000010CE                           387  OP_MOVEQ:
-000010CE                           388  
-000010CE                           389  
-000010CE                           390  
-000010CE                           391  OP_DIVU:
-000010CE                           392  
-000010CE                           393  
-000010CE                           394  
-000010CE                           395  OP_DIVS  ;(optional)
-000010CE                           396  
-000010CE                           397  
-000010CE                           398  
-000010CE                           399  OP_OR  ;(optional)
-000010CE                           400  
-000010CE                           401  
-000010CE                           402  
-000010CE                           403  OP_SUB:
-000010CE                           404  
-000010CE                           405  
-000010CE                           406  
-000010CE                           407  OP_CMP:
-000010CE                           408  
-000010CE                           409  
-000010CE                           410  
-000010CE                           411  OP_EOR:  ;(optional)
-000010CE                           412  
-000010CE                           413  
-000010CE                           414  
-000010CE                           415  OP_MULU:
-000010CE                           416  
-000010CE                           417  
-000010CE                           418  
-000010CE                           419  OP_MULS:  ;(optional)
-000010CE                           420  
-000010CE                           421  
-000010CE                           422  
-000010CE                           423  OP_AND:  ;(optional)
-000010CE                           424  
-000010CE                           425  
-000010CE                           426  
-000010CE                           427  OP_ADD:
-000010CE                           428  
-000010CE                           429  
-000010CE                           430  
-000010CE                           431  OP_ADDA:
-000010CE                           432  
-000010CE                           433  
-000010CE                           434  
-000010CE                           435  OP_ASL:
-000010CE                           436  
-000010CE                           437  
-000010CE                           438  
-000010CE                           439  OP_ASR:
-000010CE                           440  
-000010CE                           441  
-000010CE                           442  
-000010CE                           443  
-000010CE                           444  OP_LSL:  ;(optional)
-000010CE                           445  
-000010CE                           446  
-000010CE                           447  
-000010CE                           448  
-000010CE                           449  OP_LSR:  ;(optional)
-000010CE                           450  
-000010CE                           451  
-000010CE                           452  
-000010CE                           453  
-000010CE                           454  OP_ROL:  ;(optional)
-000010CE                           455  
-000010CE                           456  
-000010CE                           457  
-000010CE                           458  
-000010CE                           459  OP_ROR:  ;(optional)
-000010CE                           460  
-000010CE                           461  
-000010CE                           462  
-000010CE                           463  
-000010CE                           464  OP_UNSUPPORTED_OPCODE:
-000010CE                           465  
-000010CE                           466  
-000010CE                           467  
-000010CE                           468  
-000010CE                           469  ;******************************** ATOI *********************************************
-000010CE                           470  ATOI:
-000010CE  2401                     471          MOVE.L      D1,D2                   ;loop variable (size) is in D2
-000010D0  2449                     472          MOVEA.L     A1,A2                   ;pointer to next char
-000010D2  4244                     473          CLR         D4
-000010D4                           474  
-000010D4                           475  ATOI_LOOP  
-000010D4  4243                     476          CLR         D3                      ;clear d3
-000010D6                           477          ;CMP.B       #0,D2
-000010D6                           478          ;BEQ         ATOI_DONE               ;DONE
-000010D6  5382                     479          SUBI.L      #1,D2                   ;subtract 1 from loop counter
-000010D8  161A                     480          MOVE.B      (A2)+,D3                 ;move current byte to D3, then increment to next
-000010DA  B63C 002F                481          CMP.B       #$2F,D3
-000010DE  6F00 0060                482          BLE         ATOI_ERROR              ;if less than 30, not a number, branch to error
-000010E2  B63C 0039                483          CMP.B       #$39,D3                 ;check byte to see if number or letter
-000010E6  6F00 002A                484          BLE         ATOI_NUMBER             ;30<x<39 --> number
-000010EA  B63C 0040                485          CMP.B       #$40,D3
-000010EE  6F00 0050                486          BLE         ATOI_ERROR
-000010F2  B63C 0046                487          CMP.B       #$46,D3
-000010F6  6F00 0024                488          BLE         ATOI_UPPERCASE_LETTER   ;less than 47, it is uppercase letter
-000010FA  B63C 0060                489          CMP.B       #$60,D3
-000010FE  6F00 0040                490          BLE         ATOI_ERROR
-00001102  B63C 0066                491          CMP.B       #$66,D3
-00001106  6F00 001E                492          BLE         ATOI_LOWERCASE_LETTER
-0000110A  B63C 0067                493          CMP.B       #$67,D3
-0000110E  6C00 0030                494          BGE         ATOI_ERROR
-00001112                           495          
-00001112                           496          ;BNE         ATOI_LOOP                    ;run loop
-00001112                           497      
-00001112                           498  
-00001112                           499  ATOI_NUMBER
-00001112                           500  ;number --> d1 = d1 - $30
-00001112  0403 0030                501      SUBI.B          #$30, D3                    ;subtract 30 if number
-00001116                           502      ;MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
-00001116  4EF9 00001130            503      JMP             ATOI_FORMAT                 ;testing
-0000111C                           504      ;JMP            ATOI_LOOP                   ;loop
+00001068                           107  
+00001068                           108  
+00001068                           109  
+00001068                           110  
+00001068                           111  
+00001068                           112  
+00001068                           113  
+00001068                           114  
+00001068                           115  ;************************************ OP Stuff ********************************************************** 
+00001068                           116  
+00001068                           117  ;A0
+00001068                           118  ;A1
+00001068                           119  ;A2 = buffer (this is our decoded string that will print to screen)
+00001068                           120  ;A3
+00001068                           121  ;A4 = current memory address for buffer (used for clearing????)
+00001068                           122  ;A5 = starting address / current address in memory
+00001068                           123  ;A6 = ending address
+00001068                           124  ;A7
+00001068                           125  
+00001068                           126  ;D0
+00001068                           127  ;D1
+00001068                           128  ;D2 = ?
+00001068                           129  ;D3 = buffer size (used for loop = 64)
+00001068                           130  ;D4 = 
+00001068                           131  ;D5
+00001068                           132  ;D6
+00001068                           133  ;D7
+00001068                           134  
+00001068                           135  OP_START
+00001068                           136      ;get complete line? 
+00001068                           137      ;everything happens in here
+00001068                           138      
+00001068                           139      ;MOVEM.L         D2/A6, -(SP)
+00001068                           140  
+00001068  4EB9 000010A0            141      JSR             OP_DATA_CLR         ;clear buffer
+0000106E  45F9 000012BA            142      LEA             buffer, A2          ;A2 now points to buffer, which is cleared
+00001074                           143      
+00001074                           144  
+00001074                           145      ;print out current mem address by putting into buffer and then adding a ' ' (tab)
+00001074  7403                     146      MOVE.L          #$0003,D2           ;? BINARY --> 0011 ?
+00001076  4EB9 0000119C            147      JSR             ITOA_ADDRESS        ;convert A5 (current address) to ASCII and put in buffer
+0000107C  14FC 0009                148      MOVE.B          #$09, (A2)+         ;adds a ' ' to buffer
+00001080                           149      
+00001080                           150      ;at this point buffer has the memory address and a space, ready for op code
+00001080                           151      
+00001080  41F9 000010B6            152      LEA             OP_TABLE, A0
+00001086  4280                     153      CLR.L           D0
+00001088  301D                     154      MOVE.W          (A5)+,D0            ;moves opcode from current address into D0
+0000108A  2200                     155      MOVE.L          D0,D1               ;should move word size into D1
+0000108C  143C 000C                156      MOVE.B          #right12,D2         ;move immediate value 12 into D2
+00001090  E469                     157      LSR.W           D2,D1               ;shift D1 by 12 bits, leaving just 4 bits (this is our opcode???)
+00001092  C2FC 0006                158      MULU            #6,D1               ;computes opcode table jump displacement
+00001096  4EF0 1000                159      JMP             0(A0,D1)            ;jumps to opcode table entry (A0 = OP_TABLE)
+0000109A                           160  
+0000109A                           161  OP_FINISH:
+0000109A  4CDF 4004                162      MOVEM.L         (SP)+, D2/A6
+0000109E  4E75                     163      RTS
+000010A0                           164  
+000010A0                           165  
+000010A0                           166  OP_DATA_CLR:
+000010A0  4283                     167      CLR.L           D3                  ; ? What is D3????
+000010A2  1638 0040                168      MOVE.B          buffer_size,D3      ; put 64 into D3
+000010A6  49F9 000012BA            169      LEA             buffer, A4          ; what address register?
+000010AC                           170  
+000010AC                           171  OP_DATA_CLR_LOOP:
+000010AC  18FC 0000                172      MOVE.B          #0, (A4)+
+000010B0  5343                     173      SUBI            #1, D3
+000010B2  6EF8                     174      BGT             OP_DATA_CLR_LOOP
+000010B4  4E75                     175      RTS                                 ;need RTS to return
+000010B6                           176  
+000010B6                           177  ;********************************* jump table ****************************************
+000010B6                           178  
+000010B6                           179  OP_TABLE:
+000010B6  4EF9 00001116            180          JMP         opcode0000              ;ORI (ANDI, SUBI, ADDI, EORI, CMPI)
+000010BC  4EF9 0000111C            181          JMP         opcode0001              ;MOVE.B
+000010C2  4EF9 0000111C            182          JMP         opcode0010              ;MOVEA.L, MOVE.L
+000010C8  4EF9 0000111C            183          JMP         opcode0011              ;MOVEA.W MOVE.W
+000010CE  4EF9 0000111C            184          JMP         opcode0100              ;NOP, MOVEM, LEA (CLR, NOT, EXT, TRAP, STOP, RTE, RTS, JSR, JMP
+000010D4  4EF9 0000111C            185          JMP         opcode0101              ;ADDQ (SUBQ)
+000010DA  4EF9 0000111C            186          JMP         opcode0110              ;BRA.bw, BSR.bw (BEQ)
+000010E0  4EF9 0000111C            187          JMP         opcode0111              ;MOVEQ.l
+000010E6  4EF9 0000111C            188          JMP         opcode1000              ;DIVU (DIVS, OR)
+000010EC  4EF9 0000111C            189          JMP         opcode1001              ;SUB
+000010F2  4EF9 0000111C            190          JMP         opcode1010              ;not assigned
+000010F8  4EF9 0000111C            191          JMP         opcode1011              ;CMP (EOR)
+000010FE  4EF9 0000111C            192          JMP         opcode1100              ;MULU (MULS, AND)
+00001104  4EF9 0000111C            193          JMP         opcode1101              ;ADD, ADDA
+0000110A  4EF9 0000111C            194          JMP         opcode1110              ;ASL, ASR (LSL, LSR, ROL, ROR)
+00001110  4EF9 0000111C            195          JMP         opcode1111              ;not assigned
+00001116                           196  
+00001116                           197  
+00001116                           198  opcode0000:
+00001116  2200                     199          MOVE.L      D0,D1
+00001118  0241 0F00                200          ANDI.W      #nibble2,D1
+0000111C                           201  
+0000111C                           202  
+0000111C                           203  opcode0001:
+0000111C                           204  
+0000111C                           205  
+0000111C                           206  
+0000111C                           207  
+0000111C                           208  opcode0010:
+0000111C                           209  
+0000111C                           210  
+0000111C                           211  
+0000111C                           212  
+0000111C                           213  opcode0011:
+0000111C                           214  ;PRINT move or movea or ...
+0000111C                           215  
+0000111C                           216  
+0000111C                           217  
+0000111C                           218  opcode0100:
+0000111C                           219  
+0000111C                           220  
+0000111C                           221  
+0000111C                           222  
+0000111C                           223  opcode0101:
+0000111C                           224  
+0000111C                           225  
+0000111C                           226  
+0000111C                           227  
+0000111C                           228  opcode0110:
+0000111C                           229  
+0000111C                           230  
+0000111C                           231  
+0000111C                           232  
+0000111C                           233  opcode0111:
+0000111C                           234  
+0000111C                           235  
+0000111C                           236  
+0000111C                           237  
+0000111C                           238  opcode1000:
+0000111C                           239  
+0000111C                           240  
+0000111C                           241  
+0000111C                           242  
+0000111C                           243  opcode1001:
+0000111C                           244  
+0000111C                           245  
+0000111C                           246  
+0000111C                           247  
+0000111C                           248  opcode1010:
+0000111C                           249  
+0000111C                           250  
+0000111C                           251  
+0000111C                           252  
+0000111C                           253  opcode1011:
+0000111C                           254  
+0000111C                           255  
+0000111C                           256  
+0000111C                           257  
+0000111C                           258  opcode1100:
+0000111C                           259  
+0000111C                           260  
+0000111C                           261  
+0000111C                           262  
+0000111C                           263  opcode1101:
+0000111C                           264  
+0000111C                           265  
+0000111C                           266  
+0000111C                           267  
+0000111C                           268  opcode1110:
+0000111C                           269  
+0000111C                           270  
+0000111C                           271  
+0000111C                           272  
+0000111C                           273  opcode1111:
+0000111C                           274  
+0000111C                           275  
+0000111C                           276  
+0000111C                           277  ;******************************** OP_XXX_TABLES ************************************
+0000111C                           278  
+0000111C                           279  OP_0000_TABLE:
+0000111C                           280             
+0000111C                           281  
+0000111C                           282  
+0000111C                           283  OP_0001_TABLE:
+0000111C                           284  
+0000111C                           285  
+0000111C                           286  
+0000111C                           287  OP_0010_TABLE:
+0000111C                           288  
+0000111C                           289  
+0000111C                           290  
+0000111C                           291  OP_0011_TABLE:
+0000111C                           292  
+0000111C                           293  
+0000111C                           294  
+0000111C                           295  OP_0100_TABLE:
+0000111C                           296  
+0000111C                           297  
+0000111C                           298  
+0000111C                           299  OP_0101_TABLE:
+0000111C                           300  
+0000111C                           301  
+0000111C                           302  
+0000111C                           303  OP_0110_TABLE:
+0000111C                           304  
+0000111C                           305  
+0000111C                           306  
+0000111C                           307  OP_0111_TABLE:
+0000111C                           308  
+0000111C                           309  
+0000111C                           310  
+0000111C                           311  OP_1000_TABLE:
+0000111C                           312  
+0000111C                           313  
+0000111C                           314  
+0000111C                           315  OP_1001_TABLE:
+0000111C                           316  
+0000111C                           317  
+0000111C                           318  
+0000111C                           319  OP_1010_TABLE:
+0000111C                           320  
+0000111C                           321  
+0000111C                           322  
+0000111C                           323  OP_1011_TABLE:
+0000111C                           324  
+0000111C                           325  
+0000111C                           326  
+0000111C                           327  OP_1100_TABLE:
+0000111C                           328  
+0000111C                           329  
+0000111C                           330  
+0000111C                           331  OP_1101_TABLE:
+0000111C                           332  
+0000111C                           333  
+0000111C                           334  
+0000111C                           335  OP_1110_TABLE:
+0000111C                           336  
+0000111C                           337  
+0000111C                           338  
+0000111C                           339  OP_1111_TABLE:
+0000111C                           340  
+0000111C                           341  
+0000111C                           342  ;******************************** OP_INSTRUCTION_XXXX******************************************
+0000111C                           343  
+0000111C                           344  OP_ORI:
+0000111C                           345  ;ATUALLY PRINTING CODE
+0000111C                           346  ;
+0000111C                           347  
+0000111C                           348  
+0000111C                           349  
+0000111C                           350  OP_ANDI:  ;(optional)
+0000111C                           351  
+0000111C                           352  
+0000111C                           353  
+0000111C                           354  
+0000111C                           355  OP_SUBI:  ;(optional)
+0000111C                           356  
+0000111C                           357  
+0000111C                           358  
+0000111C                           359  OP_ADDI:  ;(optional)
+0000111C                           360  
+0000111C                           361  
+0000111C                           362  
+0000111C                           363  OP_EORI:  ;(optional)
+0000111C                           364  
+0000111C                           365  
+0000111C                           366  
+0000111C                           367  OP_CMPI:  ;(optional)
+0000111C                           368  
+0000111C                           369  
+0000111C                           370  
+0000111C                           371  OP_MOVE.B:
+0000111C                           372  
+0000111C                           373  
+0000111C                           374  
+0000111C                           375  OP_MOVEA.L:
+0000111C                           376  
+0000111C                           377  
+0000111C                           378  
+0000111C                           379  OP_MOVE.L:
+0000111C                           380  
+0000111C                           381  
+0000111C                           382  
+0000111C                           383  OP_MOVEA.W:
+0000111C                           384  
+0000111C                           385  
+0000111C                           386  
+0000111C                           387  OP_MOVE.W:
+0000111C                           388  
+0000111C                           389  
+0000111C                           390  
+0000111C                           391  OP_NOP:
+0000111C                           392  
+0000111C                           393  
+0000111C                           394  
+0000111C                           395  OP_MOVEM:
+0000111C                           396  
+0000111C                           397  
+0000111C                           398  
+0000111C                           399  OP_LEA:
+0000111C                           400  
+0000111C                           401  
+0000111C                           402  
+0000111C                           403  OP_CLR:  ;(optional)
+0000111C                           404  
+0000111C                           405  
+0000111C                           406  
+0000111C                           407  OP_NOT:  ;(optional)
+0000111C                           408  
+0000111C                           409  
+0000111C                           410  
+0000111C                           411  OP_EXT:  ;(optional)
+0000111C                           412  
+0000111C                           413  
+0000111C                           414  
+0000111C                           415  OP_TRAP:  ;(optional)
+0000111C                           416  
+0000111C                           417  
+0000111C                           418   
+0000111C                           419  OP_STOP:  ;(optional)
+0000111C                           420  
+0000111C                           421  
+0000111C                           422  
+0000111C                           423  OP_RTE:  ;(optional)
+0000111C                           424  
+0000111C                           425  
+0000111C                           426  
+0000111C                           427  OP_RTS:  ;(optional)
+0000111C                           428  
+0000111C                           429  
+0000111C                           430  
+0000111C                           431  OP_JSR:  ;(optional)
+0000111C                           432  
+0000111C                           433  
+0000111C                           434  
+0000111C                           435  OP_JMP:  ;(optional)
+0000111C                           436  
+0000111C                           437  
+0000111C                           438  
+0000111C                           439  OP_ADDQ:
+0000111C                           440  
+0000111C                           441  
+0000111C                           442  
+0000111C                           443  OP_SUBQ:  ;(optional)
+0000111C                           444  
+0000111C                           445  
+0000111C                           446  
+0000111C                           447  OP_BRA:                                     ;???? DO WE DEFINE SIZE HERE OR AFTER????
+0000111C                           448  
+0000111C                           449  
+0000111C                           450  
+0000111C                           451  OP_BSR:
+0000111C                           452  
+0000111C                           453  
+0000111C                           454  
+0000111C                           455  OP_BEQ:
+0000111C                           456  
+0000111C                           457  
+0000111C                           458  
+0000111C                           459  OP_MOVEQ:
+0000111C                           460  
+0000111C                           461  
+0000111C                           462  
+0000111C                           463  OP_DIVU:
+0000111C                           464  
+0000111C                           465  
+0000111C                           466  
+0000111C                           467  OP_DIVS  ;(optional)
+0000111C                           468  
+0000111C                           469  
+0000111C                           470  
+0000111C                           471  OP_OR  ;(optional)
+0000111C                           472  
+0000111C                           473  
+0000111C                           474  
+0000111C                           475  OP_SUB:
+0000111C                           476  
+0000111C                           477  
+0000111C                           478  
+0000111C                           479  OP_CMP:
+0000111C                           480  
+0000111C                           481  
+0000111C                           482  
+0000111C                           483  OP_EOR:  ;(optional)
+0000111C                           484  
+0000111C                           485  
+0000111C                           486  
+0000111C                           487  OP_MULU:
+0000111C                           488  
+0000111C                           489  
+0000111C                           490  
+0000111C                           491  OP_MULS:  ;(optional)
+0000111C                           492  
+0000111C                           493  
+0000111C                           494  
+0000111C                           495  OP_AND:  ;(optional)
+0000111C                           496  
+0000111C                           497  
+0000111C                           498  
+0000111C                           499  OP_ADD:
+0000111C                           500  
+0000111C                           501  
+0000111C                           502  
+0000111C                           503  OP_ADDA:
+0000111C                           504  
 0000111C                           505  
-0000111C                           506  ATOI_UPPERCASE_LETTER
-0000111C                           507  ;letter --> d1 = d1 - $37
-0000111C  0403 0037                508      SUBI.B          #$37,D3                     ;subtract 37 if UPPER case letter
-00001120                           509      ;MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
-00001120  4EF9 00001130            510      JMP             ATOI_FORMAT                 ;testing
-00001126                           511      ;JMP            ATOI_LOOP                   ;loop
-00001126                           512  
-00001126                           513  ATOI_LOWERCASE_LETTER
-00001126  0403 0057                514      SUBI.B          #$57,D3                     ;subtract 57(20 + 37)
-0000112A                           515      ;MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
-0000112A  4EF9 00001130            516      JMP             ATOI_FORMAT                 ;testing
-00001130                           517      ;JMP            ATOI_LOOP                  ;loop
-00001130                           518  
-00001130                           519  
-00001130                           520  ATOI_FORMAT
-00001130  D803                     521      ADD.B           D3,D4                       ;add the byte to D4 so can add later   
-00001132  B43C 0000                522      CMP.B           #0,D2                       
-00001136  6700 0008                523      BEQ             ATOI_DONE                   ;check if done (loop counter D2 is at 0)
-0000113A  E984                     524      ASL.L           #4,D4                       ;logical shift left to make room
-0000113C  4EF8 10D4                525      JMP             ATOI_LOOP                   ;go back to loop
-00001140                           526  
-00001140                           527  ATOI_ERROR
-00001140                           528      ;come back to handle error when out of range
-00001140                           529      
-00001140                           530  
-00001140                           531  
-00001140                           532  ;****************************** Validate Addresses **************************************
-00001140                           533  
-00001140                           534  VALIDATE_BEGINNING:
-00001140                           535      
-00001140                           536  
-00001140                           537  ATOI_DONE 
-00001140  2284                     538      MOVE.L         D4,(A1)                      ;at this point, move the new address in D4 to mem location                                
-00001142  4E75                     539      RTS                                         ;used to RTS after a branch statement
-00001144                           540  
-00001144                           541      
-00001144                           542  ;******************** MESSAGES ***************************************
-00001144= 57 65 6C 63 6F 6D ...    543  welcome_message         DC.B    'Welcome to 68k disassembler',CR,LF,0
-00001162                           544  
-00001162= 50 6C 65 61 73 65 ...    545  get_start_address       DC.B    'Please enter a starting address in hexadecimal',CR,LF,0
-00001193                           546  
-00001193= 50 6C 65 61 73 65 ...    547  get_end_address         DC.B    'Please enter an ending address in hexadecimal',CR,LF,0
-000011C3                           548  
-000011C3= 49 6E 76 61 6C 69 ...    549  atoi_error_invalid      DC.B    'Invalid address, characters must be $0-F',CR,LF,0
-000011EE                           550  
-000011EE                           551  ascii_start:
-000011EE                           552      DS.w    10          ;specify size later?
-00001202                           553      
-00001202                           554  ascii_end:
-00001202                           555      DS.w    10          ;specify size later?
-00001216                           556  
-00001216                           557  decoded_string          ;storing op code
-00001216                           558      DS.W    64          ;do we leave as .w or change to .l ?
-00001296                           559      
-00001296                           560  
-00001296                           561      END    START        ; last line of source
+0000111C                           506  
+0000111C                           507  OP_ASL:
+0000111C                           508  
+0000111C                           509  
+0000111C                           510  
+0000111C                           511  OP_ASR:
+0000111C                           512  
+0000111C                           513  
+0000111C                           514  
+0000111C                           515  
+0000111C                           516  OP_LSL:  ;(optional)
+0000111C                           517  
+0000111C                           518  
+0000111C                           519  
+0000111C                           520  
+0000111C                           521  OP_LSR:  ;(optional)
+0000111C                           522  
+0000111C                           523  
+0000111C                           524  
+0000111C                           525  
+0000111C                           526  OP_ROL:  ;(optional)
+0000111C                           527  
+0000111C                           528  
+0000111C                           529  
+0000111C                           530  
+0000111C                           531  OP_ROR:  ;(optional)
+0000111C                           532  
+0000111C                           533  
+0000111C                           534  
+0000111C                           535  
+0000111C                           536  OP_UNSUPPORTED_OPCODE:
+0000111C                           537  
+0000111C                           538  
+0000111C                           539  
+0000111C                           540  
+0000111C                           541  ;******************************** ATOI *********************************************
+0000111C                           542  ATOI:
+0000111C  2401                     543          MOVE.L      D1,D2                   ;loop variable (size) is in D2
+0000111E  2449                     544          MOVEA.L     A1,A2                   ;pointer to next char
+00001120  4244                     545          CLR         D4
+00001122                           546  
+00001122                           547  ATOI_LOOP  
+00001122  4243                     548          CLR         D3                      ;clear d3
+00001124                           549          ;CMP.B       #0,D2
+00001124                           550          ;BEQ         ATOI_DONE               ;DONE
+00001124  5382                     551          SUBI.L      #1,D2                   ;subtract 1 from loop counter
+00001126  161A                     552          MOVE.B      (A2)+,D3                 ;move current byte to D3, then increment to next
+00001128  B63C 002F                553          CMP.B       #$2F,D3
+0000112C  6F00 0060                554          BLE         ATOI_ERROR              ;if less than 30, not a number, branch to error
+00001130  B63C 0039                555          CMP.B       #$39,D3                 ;check byte to see if number or letter
+00001134  6F00 002A                556          BLE         ATOI_NUMBER             ;30<x<39 --> number
+00001138  B63C 0040                557          CMP.B       #$40,D3
+0000113C  6F00 0050                558          BLE         ATOI_ERROR
+00001140  B63C 0046                559          CMP.B       #$46,D3
+00001144  6F00 0024                560          BLE         ATOI_UPPERCASE_LETTER   ;less than 47, it is uppercase letter
+00001148  B63C 0060                561          CMP.B       #$60,D3
+0000114C  6F00 0040                562          BLE         ATOI_ERROR
+00001150  B63C 0066                563          CMP.B       #$66,D3
+00001154  6F00 001E                564          BLE         ATOI_LOWERCASE_LETTER
+00001158  B63C 0067                565          CMP.B       #$67,D3
+0000115C  6C00 0030                566          BGE         ATOI_ERROR
+00001160                           567          
+00001160                           568          ;BNE         ATOI_LOOP                    ;run loop
+00001160                           569      
+00001160                           570  
+00001160                           571  ATOI_NUMBER
+00001160                           572  ;number --> d1 = d1 - $30
+00001160  0403 0030                573      SUBI.B          #$30, D3                    ;subtract 30 if number
+00001164                           574      ;MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
+00001164  4EF9 0000117E            575      JMP             ATOI_FORMAT                 ;testing
+0000116A                           576      ;JMP            ATOI_LOOP                   ;loop
+0000116A                           577  
+0000116A                           578  ATOI_UPPERCASE_LETTER
+0000116A                           579  ;letter --> d1 = d1 - $37
+0000116A  0403 0037                580      SUBI.B          #$37,D3                     ;subtract 37 if UPPER case letter
+0000116E                           581      ;MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
+0000116E  4EF9 0000117E            582      JMP             ATOI_FORMAT                 ;testing
+00001174                           583      ;JMP            ATOI_LOOP                   ;loop
+00001174                           584  
+00001174                           585  ATOI_LOWERCASE_LETTER
+00001174  0403 0057                586      SUBI.B          #$57,D3                     ;subtract 57(20 + 37)
+00001178                           587      ;MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
+00001178  4EF9 0000117E            588      JMP             ATOI_FORMAT                 ;testing
+0000117E                           589      ;JMP            ATOI_LOOP                  ;loop
+0000117E                           590  
+0000117E                           591  
+0000117E                           592  ATOI_FORMAT
+0000117E  D803                     593      ADD.B           D3,D4                       ;add the byte to D4 so can add later   
+00001180  B43C 0000                594      CMP.B           #0,D2                       
+00001184  6700 0008                595      BEQ             ATOI_DONE                   ;check if done (loop counter D2 is at 0)
+00001188  E984                     596      ASL.L           #4,D4                       ;logical shift left to make room
+0000118A  4EF8 1122                597      JMP             ATOI_LOOP                   ;go back to loop
+0000118E                           598  
+0000118E                           599  ATOI_ERROR
+0000118E                           600      ;come back to handle error when out of range
+0000118E                           601      
+0000118E                           602  
+0000118E                           603  ATOI_DONE 
+0000118E  2284                     604      MOVE.L         D4,(A1)                      ;at this point, move the new address in D4 to mem location                                
+00001190  4E75                     605      RTS                                         ;used to RTS after a branch statement
+00001192                           606  
+00001192                           607  ;************************************* ITOA *********************************************
+00001192                           608  ;A0
+00001192                           609  ;A1
+00001192                           610  ;A2 = buffer (this is our decoded string that will print to screen)
+00001192                           611  ;A3
+00001192                           612  ;A4 = current memory address for buffer
+00001192                           613  ;A5 = starting address / current address in memory
+00001192                           614  ;A6 = ending address
+00001192                           615  ;A7 = SP
+00001192                           616  
+00001192                           617  ;D0 = counter
+00001192                           618  ;D1 = 
+00001192                           619  ;D2 = ?
+00001192                           620  ;D3 = buffer size (used for loop = 64)
+00001192                           621  ;D4 = value being converted
+00001192                           622  ;D5 =
+00001192                           623  ;D6 = 
+00001192                           624  ;D7 = 
+00001192                           625  ITOA:
+00001192  280D                     626      MOVE.L         A5,D4                    ;D4 has data to convert to ascii
+00001194                           627  
+00001194                           628  ITOA_LOOP:
+00001194  BA3C 0000                629      CMP.B           #0,D5
+00001198  6700 004C                630      BEQ             ITOA_FINISH             ;when 0, branch to finish to complete
+0000119C                           631  
+0000119C                           632  
+0000119C                           633  
+0000119C                           634  
+0000119C                           635  ITOA_BYTE:
+0000119C                           636  
+0000119C                           637  
+0000119C                           638  
+0000119C                           639  ITOA_WORD:
+0000119C                           640  
+0000119C                           641  
+0000119C                           642  
+0000119C                           643  ITOA_LONG:
+0000119C                           644  
+0000119C                           645  
+0000119C                           646  
+0000119C                           647  ITOA_ADDRESS:
+0000119C  4284                     648      CLR.L       D4                          ;D4 = 0000 0000
+0000119E  280D                     649      MOVE.L      A5,D4                       ;our address is now in D4 and ready to deconstruct
+000011A0  103C 0008                650      MOVE.B      #8,D0                       ;counter
+000011A4  4EF9 000011AA            651      JMP         ITOA_ADDRESS_LOOP
+000011AA                           652  ITOA_ADDRESS_LOOP:
+000011AA  B03C 0000                653      CMP.B       #0,D0                       ;check if done
+000011AE  6700 0036                654      BEQ         ITOA_FINISH                 ;if at 0, branch to ITOA_FINISH
+000011B2  E99C                     655      ROL.L       #4,D4                       ;rotate left 4 bits, to get MSB to beginning 
+000011B4  1204                     656      MOVE.B      D4,D1                       ;store in D1 (this will be whole byte, we want half)
+000011B6  0241 000F                657      ANDI.W      #$000F,D1                   ;character is now isolated
+000011BA                           658      
+000011BA  4EB9 000011C6            659      JSR         ITOA_HEX2ASCII              ;JSR to convert
+000011C0  5340                     660      SUBI        #1,D0                       ;subtract 1 from counter
+000011C2  4EF8 11AA                661      JMP         ITOA_ADDRESS_LOOP           ;loop again!
+000011C6                           662  
+000011C6                           663  ITOA_HEX2ASCII:
+000011C6  B23C 000A                664      CMP.B       #$A,D1                      ;compare byte in D1 to hex value A
+000011CA  6C00 0012                665      BGE         ITOA_LETTER                 ;if greater than/equal A, it is letter
+000011CE  B23C 000A                666      CMP.B       #$A,D1                      ;compare byte in D1 to hex value A
+000011D2  6D00 0002                667      BLT         ITOA_NUMBER                 ;if less than, it is number
+000011D6                           668  
+000011D6                           669  ITOA_NUMBER:
+000011D6  0601 0030                670      ADDI.B      #$30,D1                     ;add $30 to D1 to convert
+000011DA  14C1                     671      MOVE.B      D1,(A2)+                    ;add to buffer and increment to next position
+000011DC  4E75                     672      RTS
+000011DE                           673  
+000011DE                           674  ITOA_LETTER:
+000011DE  0601 0037                675      ADDI.B      #$37,D1                     ;add 37 to D1 to convert
+000011E2  14C1                     676      MOVE.B      D1,(A2)+                    ;add to buffer and increment to next position
+000011E4  4E75                     677      RTS
+000011E6                           678  
+000011E6                           679  
+000011E6                           680  
+000011E6                           681  
+000011E6                           682  ITOA_FINISH:
+000011E6  4E75                     683      RTS
+000011E8                           684  
+000011E8                           685  
+000011E8                           686  ;****************************** Validate Addresses **************************************
+000011E8                           687  
+000011E8                           688  VALIDATE_BEGINNING:
+000011E8                           689      
+000011E8                           690  
+000011E8                           691  
+000011E8                           692  
+000011E8                           693      
+000011E8                           694  ;******************** MESSAGES ***************************************
+000011E8= 57 65 6C 63 6F 6D ...    695  welcome_message         DC.B    'Welcome to 68k disassembler',CR,LF,0
+00001206                           696  
+00001206= 50 6C 65 61 73 65 ...    697  get_start_address       DC.B    'Please enter a starting address in hexadecimal',CR,LF,0
+00001237                           698  
+00001237= 50 6C 65 61 73 65 ...    699  get_end_address         DC.B    'Please enter an ending address in hexadecimal',CR,LF,0
+00001267                           700  
+00001267= 49 6E 76 61 6C 69 ...    701  atoi_error_invalid      DC.B    'Invalid address, characters must be $0-F',CR,LF,0
+00001292                           702  
+00001292                           703  ascii_start:
+00001292                           704      DS.w    10          ;specify size later?
+000012A6                           705      
+000012A6                           706  ascii_end:
+000012A6                           707      DS.w    10          ;specify size later?
+000012BA                           708  
+000012BA                           709  buffer                  ;storing op code
+000012BA                           710      DS.W    64          ;do we leave as .w or change to .l ?
+0000133A                           711      
+0000133A                           712  
+0000133A                           713      END    START        ; last line of source
 
 No errors detected
 No warnings generated
@@ -571,112 +723,126 @@ No warnings generated
 SYMBOL TABLE INFORMATION
 Symbol-name         Value
 -------------------------
-ASCII_END           1202
-ASCII_START         11EE
-ATOI                10CE
-ATOI_DONE           1140
-ATOI_ERROR          1140
-ATOI_ERROR_INVALID  11C3
-ATOI_FORMAT         1130
-ATOI_LOOP           10D4
-ATOI_LOWERCASE_LETTER  1126
-ATOI_NUMBER         1112
-ATOI_UPPERCASE_LETTER  111C
+ASCII_END           12A6
+ASCII_START         1292
+ATOI                111C
+ATOI_DONE           118E
+ATOI_ERROR          118E
+ATOI_ERROR_INVALID  1267
+ATOI_FORMAT         117E
+ATOI_LOOP           1122
+ATOI_LOWERCASE_LETTER  1174
+ATOI_NUMBER         1160
+ATOI_UPPERCASE_LETTER  116A
+BUFFER              12BA
 BUFFER_SIZE         40
-CLEAR_BUFFER        1068
 CR                  D
-DECODED_STRING      1216
 DECODING_LOOP       105E
 DONE                1064
 GET_ENDING_ADDRESS  1038
-GET_END_ADDRESS     1193
+GET_END_ADDRESS     1237
 GET_STARTING_ADDRESS  1012
-GET_START_ADDRESS   1162
+GET_START_ADDRESS   1206
+ITOA                1192
+ITOA_ADDRESS        119C
+ITOA_ADDRESS_LOOP   11AA
+ITOA_BYTE           119C
+ITOA_FINISH         11E6
+ITOA_HEX2ASCII      11C6
+ITOA_LETTER         11DE
+ITOA_LONG           119C
+ITOA_LOOP           1194
+ITOA_NUMBER         11D6
+ITOA_WORD           119C
 LF                  A
 LINES_PER_SCREEN    1E
 NIBBLE2             F00
 NIBBLE3             F0
 NIBBLE4             F
-OPCODE0000          10C8
-OPCODE0001          10CE
-OPCODE0010          10CE
-OPCODE0011          10CE
-OPCODE0100          10CE
-OPCODE0101          10CE
-OPCODE0110          10CE
-OPCODE0111          10CE
-OPCODE1000          10CE
-OPCODE1001          10CE
-OPCODE1010          10CE
-OPCODE1011          10CE
-OPCODE1100          10CE
-OPCODE1101          10CE
-OPCODE1110          10CE
-OPCODE1111          10CE
-OP_0000_TABLE       10CE
-OP_0001_TABLE       10CE
-OP_0010_TABLE       10CE
-OP_0011_TABLE       10CE
-OP_0100_TABLE       10CE
-OP_0101_TABLE       10CE
-OP_0110_TABLE       10CE
-OP_0111_TABLE       10CE
-OP_1000_TABLE       10CE
-OP_1001_TABLE       10CE
-OP_1010_TABLE       10CE
-OP_1011_TABLE       10CE
-OP_1100_TABLE       10CE
-OP_1101_TABLE       10CE
-OP_1110_TABLE       10CE
-OP_1111_TABLE       10CE
-OP_ADD              10CE
-OP_ADDA             10CE
-OP_ADDI             10CE
-OP_ADDQ             10CE
-OP_AND              10CE
-OP_ANDI             10CE
-OP_ASL              10CE
-OP_ASR              10CE
-OP_BEQ              10CE
-OP_BRA              10CE
-OP_BSR              10CE
-OP_CLR              10CE
-OP_CMP              10CE
-OP_CMPI             10CE
-OP_DIVS             10CE
-OP_DIVU             10CE
-OP_EOR              10CE
-OP_EORI             10CE
-OP_EXT              10CE
-OP_JMP              10CE
-OP_JSR              10CE
-OP_LEA              10CE
-OP_LSL              10CE
-OP_LSR              10CE
-OP_MOVE.B           10CE
-OP_MOVE.L           10CE
-OP_MOVE.W           10CE
-OP_MOVEA.L          10CE
-OP_MOVEA.W          10CE
-OP_MOVEM            10CE
-OP_MOVEQ            10CE
-OP_MULS             10CE
-OP_MULU             10CE
-OP_NOP              10CE
-OP_NOT              10CE
-OP_OR               10CE
-OP_ORI              10CE
-OP_ROL              10CE
-OP_ROR              10CE
-OP_RTE              10CE
-OP_RTS              10CE
-OP_STOP             10CE
-OP_SUB              10CE
-OP_SUBI             10CE
-OP_SUBQ             10CE
-OP_TABLE            1068
-OP_TRAP             10CE
-OP_UNSUPPORTED_OPCODE  10CE
+OPCODE0000          1116
+OPCODE0001          111C
+OPCODE0010          111C
+OPCODE0011          111C
+OPCODE0100          111C
+OPCODE0101          111C
+OPCODE0110          111C
+OPCODE0111          111C
+OPCODE1000          111C
+OPCODE1001          111C
+OPCODE1010          111C
+OPCODE1011          111C
+OPCODE1100          111C
+OPCODE1101          111C
+OPCODE1110          111C
+OPCODE1111          111C
+OP_0000_TABLE       111C
+OP_0001_TABLE       111C
+OP_0010_TABLE       111C
+OP_0011_TABLE       111C
+OP_0100_TABLE       111C
+OP_0101_TABLE       111C
+OP_0110_TABLE       111C
+OP_0111_TABLE       111C
+OP_1000_TABLE       111C
+OP_1001_TABLE       111C
+OP_1010_TABLE       111C
+OP_1011_TABLE       111C
+OP_1100_TABLE       111C
+OP_1101_TABLE       111C
+OP_1110_TABLE       111C
+OP_1111_TABLE       111C
+OP_ADD              111C
+OP_ADDA             111C
+OP_ADDI             111C
+OP_ADDQ             111C
+OP_AND              111C
+OP_ANDI             111C
+OP_ASL              111C
+OP_ASR              111C
+OP_BEQ              111C
+OP_BRA              111C
+OP_BSR              111C
+OP_CLR              111C
+OP_CMP              111C
+OP_CMPI             111C
+OP_DATA_CLR         10A0
+OP_DATA_CLR_LOOP    10AC
+OP_DIVS             111C
+OP_DIVU             111C
+OP_EOR              111C
+OP_EORI             111C
+OP_EXT              111C
+OP_FINISH           109A
+OP_JMP              111C
+OP_JSR              111C
+OP_LEA              111C
+OP_LSL              111C
+OP_LSR              111C
+OP_MOVE.B           111C
+OP_MOVE.L           111C
+OP_MOVE.W           111C
+OP_MOVEA.L          111C
+OP_MOVEA.W          111C
+OP_MOVEM            111C
+OP_MOVEQ            111C
+OP_MULS             111C
+OP_MULU             111C
+OP_NOP              111C
+OP_NOT              111C
+OP_OR               111C
+OP_ORI              111C
+OP_ROL              111C
+OP_ROR              111C
+OP_RTE              111C
+OP_RTS              111C
+OP_START            1068
+OP_STOP             111C
+OP_SUB              111C
+OP_SUBI             111C
+OP_SUBQ             111C
+OP_TABLE            10B6
+OP_TRAP             111C
+OP_UNSUPPORTED_OPCODE  111C
 RIGHT1              1
 RIGHT10             A
 RIGHT12             C
@@ -693,7 +859,6 @@ RIGHT9              9
 STACK               A0000
 START               1000
 START_DECODING      105E
-START_OPCODE        1068
-VALIDATE_BEGINNING  1140
+VALIDATE_BEGINNING  11E8
 WELCOME             1006
-WELCOME_MESSAGE     1144
+WELCOME_MESSAGE     11E8

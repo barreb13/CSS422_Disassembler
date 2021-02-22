@@ -71,8 +71,8 @@ GET_ENDING_ADDRESS:
 
     ;perform checks (later)
 
-    MOVE.l    (ascii_end),D6      ;load into A5
-    MOVE.l    D6,A6               ;load into A5
+    MOVE.l    (ascii_end),D6      ;load into A6
+    MOVE.l    D6,A6               ;load into A6
 
 
 
@@ -82,7 +82,7 @@ GET_ENDING_ADDRESS:
 
 
 
-;****************************** Main Loop???? ************************************ 
+;************************************ Main Loop???? ************************************************** 
 ;get pointer to first given address
 ;pull hex code from that address and store in A1?
 ;take hex code and go to OP_TABLE
@@ -112,11 +112,25 @@ DONE:
 
 
 
+;************************************ OP Stuff ********************************************************** 
 
-
+;A0
+;A1
 ;A2 = buffer (this is our decoded string that will print to screen)
+;A3
+;A4 = current memory address for buffer (used for clearing????)
 ;A5 = starting address / current address in memory
-;D2 =
+;A6 = ending address
+;A7
+
+;D0
+;D1
+;D2 = ?
+;D3 = buffer size (used for loop = 64)
+;D4 = 
+;D5
+;D6
+;D7
 
 OP_START
     ;get complete line? 
@@ -128,9 +142,9 @@ OP_START
     LEA             buffer, A2          ;A2 now points to buffer, which is cleared
     
 
-    ;print out current mem address by putting into buffer and then adding a ' '
+    ;print out current mem address by putting into buffer and then adding a ' ' (tab)
     MOVE.L          #$0003,D2           ;? BINARY --> 0011 ?
-    JSR             ITOA                ;convert A5 (current address) to ASCII and put in buffer
+    JSR             ITOA_ADDRESS        ;convert A5 (current address) to ASCII and put in buffer
     MOVE.B          #$09, (A2)+         ;adds a ' ' to buffer
     
     ;at this point buffer has the memory address and a space, ready for op code
@@ -152,12 +166,13 @@ OP_FINISH:
 OP_DATA_CLR:
     CLR.L           D3                  ; ? What is D3????
     MOVE.B          buffer_size,D3      ; put 64 into D3
-    LEA             buffer, A4         ; what address register?
+    LEA             buffer, A4          ; what address register?
 
 OP_DATA_CLR_LOOP:
     MOVE.B          #0, (A4)+
     SUBI            #1, D3
     BGT             OP_DATA_CLR_LOOP
+    RTS                                 ;need RTS to return
 
 ;********************************* jump table ****************************************
 
@@ -585,15 +600,95 @@ ATOI_ERROR
     ;come back to handle error when out of range
     
 
+ATOI_DONE 
+    MOVE.L         D4,(A1)                      ;at this point, move the new address in D4 to mem location                                
+    RTS                                         ;used to RTS after a branch statement
+
+;************************************* ITOA *********************************************
+;A0
+;A1
+;A2 = buffer (this is our decoded string that will print to screen)
+;A3
+;A4 = current memory address for buffer
+;A5 = starting address / current address in memory
+;A6 = ending address
+;A7 = SP
+
+;D0 = counter
+;D1 = 
+;D2 = ?
+;D3 = buffer size (used for loop = 64)
+;D4 = value being converted
+;D5 =
+;D6 = 
+;D7 = 
+ITOA:
+    MOVE.L         A5,D4                    ;D4 has data to convert to ascii
+
+ITOA_LOOP:
+    CMP.B           #0,D5
+    BEQ             ITOA_FINISH             ;when 0, branch to finish to complete
+
+
+
+
+ITOA_BYTE:
+
+
+
+ITOA_WORD:
+
+
+
+ITOA_LONG:
+
+
+
+ITOA_ADDRESS:
+    CLR.L       D4                          ;D4 = 0000 0000
+    MOVE.L      A5,D4                       ;our address is now in D4 and ready to deconstruct
+    MOVE.B      #8,D0                       ;counter
+    JMP         ITOA_ADDRESS_LOOP
+ITOA_ADDRESS_LOOP:
+    CMP.B       #0,D0                       ;check if done
+    BEQ         ITOA_FINISH                 ;if at 0, branch to ITOA_FINISH
+    ROL.L       #4,D4                       ;rotate left 4 bits, to get MSB to beginning 
+    MOVE.B      D4,D1                       ;store in D1 (this will be whole byte, we want half)
+    ANDI.W      #$000F,D1                   ;character is now isolated
+    
+    JSR         ITOA_HEX2ASCII              ;JSR to convert
+    SUBI        #1,D0                       ;subtract 1 from counter
+    JMP         ITOA_ADDRESS_LOOP           ;loop again!
+
+ITOA_HEX2ASCII:
+    CMP.B       #$A,D1                      ;compare byte in D1 to hex value A
+    BGE         ITOA_LETTER                 ;if greater than/equal A, it is letter
+    CMP.B       #$A,D1                      ;compare byte in D1 to hex value A
+    BLT         ITOA_NUMBER                 ;if less than, it is number
+
+ITOA_NUMBER:
+    ADDI.B      #$30,D1                     ;add $30 to D1 to convert
+    MOVE.B      D1,(A2)+                    ;add to buffer and increment to next position
+    RTS
+
+ITOA_LETTER:
+    ADDI.B      #$37,D1                     ;add 37 to D1 to convert
+    MOVE.B      D1,(A2)+                    ;add to buffer and increment to next position
+    RTS
+
+
+
+
+ITOA_FINISH:
+    RTS
+
 
 ;****************************** Validate Addresses **************************************
 
 VALIDATE_BEGINNING:
     
 
-ATOI_DONE 
-    MOVE.L         D4,(A1)                      ;at this point, move the new address in D4 to mem location                                
-    RTS                                         ;used to RTS after a branch statement
+
 
     
 ;******************** MESSAGES ***************************************
@@ -616,6 +711,7 @@ buffer                  ;storing op code
     
 
     END    START        ; last line of source
+
 
 
 
