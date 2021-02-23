@@ -1,7 +1,7 @@
 *-----------------------------------------------------------
-* Title      : Disassembler V1.3
+* Title      : Disassembler V1.4
 * Written by : Brent and Parker
-* Date       : 2/19/2021
+* Date       : 2/23/21
 * Description: Final Project for CSS 422
 *-----------------------------------------------------------
 
@@ -77,11 +77,6 @@ GET_ENDING_ADDRESS:
 
 
 
-
-
-
-
-
 ;************************************ Main Loop???? ************************************************** 
 ;get pointer to first given address
 ;pull hex code from that address and store in A1?
@@ -95,6 +90,8 @@ START_DECODING:
 
 DECODING_LOOP:
     JSR     OP_START                       ;get complete line of instruction to decode   
+    
+
     ;print tot screen
     
     ;check if finished or if screen is filled
@@ -106,22 +103,16 @@ DONE:
 
 
 
-
-
-
-
-
-
 ;************************************ OP Stuff ********************************************************** 
 
-;A0
-;A1
+;A0 = POINTER TO OP_TABLE???
+;A1 = 
 ;A2 = buffer (this is our decoded string that will print to screen)
-;A3
+;A3 = 
 ;A4 = current memory address for buffer (used for clearing????)
 ;A5 = starting address / current address in memory
 ;A6 = ending address
-;A7
+;A7 = SP
 
 ;D0
 ;D1
@@ -147,7 +138,7 @@ OP_START
     JSR             ITOA_ADDRESS        ;convert A5 (current address) to ASCII and put in buffer
     MOVE.B          #$09, (A2)+         ;adds a ' ' to buffer
     
-    ;at this point buffer has the memory address and a space, ready for op code
+    ;at this point buffer has the memory address and a space, ready for op code                     !!TESTED UP UNTIL THIS POINT AND GOOD!!
     
     LEA             OP_TABLE, A0
     CLR.L           D0
@@ -165,7 +156,7 @@ OP_FINISH:
 
 OP_DATA_CLR:
     CLR.L           D3                  ; ? What is D3????
-    MOVE.B          buffer_size,D3      ; put 64 into D3
+    MOVE.B          #buffer_size,D3     ; put 64 into D3
     LEA             buffer, A4          ; what address register?
 
 OP_DATA_CLR_LOOP:
@@ -177,111 +168,148 @@ OP_DATA_CLR_LOOP:
 ;********************************* jump table ****************************************
 
 OP_TABLE:
-        JMP         opcode0000              ;ORI (ANDI, SUBI, ADDI, EORI, CMPI)
-        JMP         opcode0001              ;MOVE.B
-        JMP         opcode0010              ;MOVEA.L, MOVE.L
-        JMP         opcode0011              ;MOVEA.W MOVE.W
-        JMP         opcode0100              ;NOP, MOVEM, LEA (CLR, NOT, EXT, TRAP, STOP, RTE, RTS, JSR, JMP
-        JMP         opcode0101              ;ADDQ (SUBQ)
-        JMP         opcode0110              ;BRA.bw, BSR.bw (BEQ)
-        JMP         opcode0111              ;MOVEQ.l
-        JMP         opcode1000              ;DIVU (DIVS, OR)
-        JMP         opcode1001              ;SUB
-        JMP         opcode1010              ;not assigned
-        JMP         opcode1011              ;CMP (EOR)
-        JMP         opcode1100              ;MULU (MULS, AND)
-        JMP         opcode1101              ;ADD, ADDA
-        JMP         opcode1110              ;ASL, ASR (LSL, LSR, ROL, ROR)
-        JMP         opcode1111              ;not assigned
+    JMP         opcode0000              ;ORI (ANDI, SUBI, ADDI, EORI, CMPI)                                 $0
+    JMP         opcode0001              ;MOVE.B                                                             $1    
+    JMP         opcode0010              ;MOVEA.L, MOVE.L                                                    $2
+    JMP         opcode0011              ;MOVEA.W MOVE.W                                                     $3
+    JMP         opcode0100              ;NOP, MOVEM, LEA (CLR, NOT, EXT, TRAP, STOP, RTE, RTS, JSR, JMP     $4
+    JMP         opcode0101              ;ADDQ (SUBQ)                                                        $5
+    JMP         opcode0110              ;BRA.bw, BSR.bw (BEQ)                                               $6
+    JMP         opcode0111              ;MOVEQ.l                                                            $7
+    JMP         opcode1000              ;DIVU (DIVS, OR)                                                    $8
+    JMP         opcode1001              ;SUB                                                                $9
+    JMP         opcode1010              ;not assigned                                                       $A
+    JMP         opcode1011              ;CMP (EOR)                                                          $B
+    JMP         opcode1100              ;MULU (MULS, AND)                                                   $C
+    JMP         opcode1101              ;ADD, ADDA                                                          $D
+    JMP         opcode1110              ;ASL, ASR (LSL, LSR, ROL, ROR)                                      $E
+    JMP         opcode1111              ;not assigned                                                       $F
 
 
-opcode0000:
-        MOVE.L      D0,D1
-        ANDI.W      #nibble2,D1
 
 
+;A0 = POINTER TO OP_TABLE???
+;A1 = 
+;A2 = buffer (this is our decoded string that will print to screen)
+;A3 = pointer to op_xxx_table
+;A4 = current memory address for buffer (used for clearing????)
+;A5 = starting address / current address in memory
+;A6 = ending address
+;A7 = SP
+
+;D0
+;D1
+;D2 = ?
+;D3 = buffer size (used for loop = 64)
+;D4 = 
+;D5
+;D6
+;D7
+
+
+
+;ORI (ANDI, SUBI, ADDI, EORI, CMPI)                                 $0
+opcode0000:                                 
+    MOVE.L      D0,D1                   ;D1 has full instruction                                      ; ???? why are we moving full instruction back into D1 ?????
+    ANDI.W      #nibble2,D1             ;check bits 11,10,9,8
+    MOVE.B      #right8, D2             ;store immediate value 8 in D2
+    LSR.W       D2, D1                  ;shift to isolate next nibble (bits 11-8)
+    MULU        #6, D1                  ;multiply by 6 to get displacement
+    LEA         OP_0000_TABLE, A3       ;load op_0000_table into address register
+    JMP         0(A3,D1)                ;jumps to opcode table entry (A0 = OP_TABLE)
+
+;MOVE.B                                                             $1
 opcode0001:
+    jmp         OP_0001_TABLE           ;no need to break down, only MOVE.B
 
 
 
-
+;MOVEA.L, MOVE.L                                                    $2
 opcode0010:
 
 
 
 
+;MOVEA.W MOVE.W                                                     $3
 opcode0011:
 ;PRINT move or movea or ...
 
 
 
+
+;NOP, MOVEM, LEA (CLR, NOT, EXT, TRAP, STOP, RTE, RTS, JSR, JMP     $4
 opcode0100:
 
 
 
-
+;ADDQ (SUBQ)                                                        $5
 opcode0101:
+    jmp         OP_0101_TABLE
 
 
 
 
+;BRA.bw, BSR.bw (BEQ)                                               $6
 opcode0110:
 
 
 
 
+;MOVEQ.l                                                            $7
 opcode0111:
 
 
 
 
+;DIVU (DIVS, OR)                                                    $8
 opcode1000:
 
 
 
-
+;SUB                                                                $9
 opcode1001:
 
 
 
-
+;not assigned                                                       $A
 opcode1010:
 
 
 
-
+;CMP (EOR)                                                          $B
 opcode1011:
 
 
 
-
+;MULU (MULS, AND)                                                   $C
 opcode1100:
 
 
 
-
+;ADD, ADDA                                                          $D
 opcode1101:
 
 
 
-
+;ASL, ASR (LSL, LSR, ROL, ROR)                                      $E
 opcode1110:
 
 
 
-
+;not assigned                                                       $F
 opcode1111:
 
 
 
 ;******************************** OP_XXX_TABLES ************************************
+;once in OP_XXX_TABLE , we will use these entries to jump to specific op code to put into buffer
 
 OP_0000_TABLE:
-           
+    jmp OP_ORI   
 
 
 OP_0001_TABLE:
-
+    jmp OP_MOVE.B
 
 
 OP_0010_TABLE:
@@ -340,10 +368,11 @@ OP_1111_TABLE:
 
 
 ;******************************** OP_INSTRUCTION_XXXX******************************************
+;this is where we are putting ascii text into buffer
+
 
 OP_ORI:
-;ATUALLY PRINTING CODE
-;
+
 
 
 
@@ -369,7 +398,15 @@ OP_CMPI:  ;(optional)
 
 
 OP_MOVE.B:
-
+    MOVE.B  #'M', (A2)+
+    MOVE.B  #'O', (A2)+
+    MOVE.B  #'V', (A2)+
+    MOVE.B  #'E', (A2)+
+    MOVE.B  #'.', (A2)+
+    MOVE.B  #'B', (A2)+
+    
+    JSR     EA_START
+    JMP     OP_FINISH
 
 
 OP_MOVEA.L:
@@ -676,22 +713,39 @@ ITOA_LETTER:
     MOVE.B      D1,(A2)+                    ;add to buffer and increment to next position
     RTS
 
-
-
-
 ITOA_FINISH:
     RTS
 
 
-;****************************** Validate Addresses **************************************
+;************************************ Validate Addresses ******************************************
 
 VALIDATE_BEGINNING:
     
 
 
 
+
+
+
+
+
+;****************************************** EA Stuff ***************************************************** 
+
+EA_START:
+
+
+
+
+
+
+
+
+
+
+
+
     
-;******************** MESSAGES ***************************************
+;****************************************** MESSAGES ***************************************************
 welcome_message         DC.B    'Welcome to 68k disassembler',CR,LF,0
 
 get_start_address       DC.B    'Please enter a starting address in hexadecimal',CR,LF,0
@@ -711,6 +765,8 @@ buffer                  ;storing op code
     
 
     END    START        ; last line of source
+
+
 
 
 
