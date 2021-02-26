@@ -1,7 +1,7 @@
 *-----------------------------------------------------------
-* Title      : Disassembler V1.4
+* Title      : Disassembler V1.5
 * Written by : Brent and Parker
-* Date       : 2/23/21
+* Date       : 2/26/21
 * Description: Final Project for CSS 422
 *-----------------------------------------------------------
 
@@ -27,6 +27,7 @@ right10             EQU     10      ;shift 10
 right12             EQU     12      ;shift 12 to extract 3rd byte
 right16             EQU     16      ;shift 16 to extract 2nd byte
 right24             EQU     24      ;shift 24 to extract 1st byte
+dest_mode           EQU     $01C0   ; --> 0000 0001 1100 0000 (used for destination in MOVE/MOVEA
 
     ORG    $1000
 START:                              ;first instruction of program
@@ -151,7 +152,7 @@ OP_START
 
 OP_FINISH:
     MOVEM.L         (SP)+, D2/A6
-    RTS
+    RTS                                 ;returns to DECODING_LOOP !?!?!?!?!?
 
 
 OP_DATA_CLR:
@@ -210,7 +211,7 @@ OP_TABLE:
 
 ;ORI (ANDI, SUBI, ADDI, EORI, CMPI)                                 $0
 opcode0000:                                 
-    MOVE.L      D0,D1                   ;D1 has full instruction                                      ; ???? why are we moving full instruction back into D1 ?????
+    MOVE.L      D0,D1                   ;D1 has full instruction
     ANDI.W      #nibble2,D1             ;check bits 11,10,9,8
     MOVE.B      #right8, D2             ;store immediate value 8 in D2
     LSR.W       D2, D1                  ;shift to isolate next nibble (bits 11-8)
@@ -220,38 +221,62 @@ opcode0000:
 
 ;MOVE.B                                                             $1
 opcode0001:
-    jmp         OP_0001_TABLE           ;no need to break down, only MOVE.B
-
+    jmp         OP_MOVEB                ;no need to break down, only MOVE.B
 
 
 ;MOVEA.L, MOVE.L                                                    $2
 opcode0010:
-
+    MOVE.L      D0,D1                   ;D1 has full instruction
+    ANDI        #dest_mode, D1          ;0000 0001 1100 0000
+    MOVE.B      #right6, D2             ;D2 now 00000111
+    LSR.W       D2, D1                  ;shifting destination mode in D1 to far right by 3
+    CMP.B       #1,D1                   ;does d1 = 001?
+    BEQ         OP_MOVEAL               ;if d1 = 001, go to MOVEA
+    jmp         OP_MOVEL                ;else jump to MOVEL
+    
 
 
 
 ;MOVEA.W MOVE.W                                                     $3
 opcode0011:
-;PRINT move or movea or ...
+    MOVE.L      D0,D1                   ;D1 has full instruction
+    ANDI        #dest_mode, D1          ;0000 0001 1100 0000
+    MOVE.B      #right6, D2             ;D2 now 00000111
+    LSR.W       D2, D1                  ;shifting destination mode in D1 to far right by 3
+    CMP.B       #1,D1                   ;does d1 = 001?
+    BEQ         OP_MOVEAW               ;if d1 = 001, go to MOVEAW
+    jmp         OP_MOVEW                ;else jump to MOVEW
 
 
 
 
-;NOP, MOVEM, LEA (CLR, NOT, EXT, TRAP, STOP, RTE, RTS, JSR, JMP     $4
+;NOP, MOVEM, LEA (CLR, NOT, EXT, TRAP, STOP, RTE, RTS, JSR, JMP)     $4
 opcode0100:
-
+    MOVE.L      D0,D1                   ;D1 has full instruction
+    ANDI.W      #nibble2,D1             ;check bits 11,10,9,8
+    MOVE.B      #right8, D2             ;store immediate value 8 in D2
+    LSR.W       D2, D1                  ;shift to isolate next nibble (bits 11-8)
+    MULU        #6, D1                  ;multiply by 6 to get displacement
+    LEA         OP_0100_TABLE, A3       ;load op_0000_table into address register
+    JMP         0(A3,D1)                ;jumps to opcode table entry (A0 = OP_TABLE)
 
 
 ;ADDQ (SUBQ)                                                        $5
 opcode0101:
-    jmp         OP_0101_TABLE
+    jmp         OP_ADDQ
 
 
 
 
 ;BRA.bw, BSR.bw (BEQ)                                               $6
 opcode0110:
-
+    MOVE.L      D0,D1                   ;D1 has full instruction
+    ANDI.W      #nibble2,D1             ;check bits 11,10,9,8
+    MOVE.B      #right8, D2             ;store immediate value 8 in D2
+    LSR.W       D2, D1                  ;shift to isolate next nibble (bits 11-8)
+    MULU        #6, D1                  ;multiply by 6 to get displacement
+    LEA         OP_0110_TABLE, A3       ;load op_0110_table into address register
+    JMP         0(A3,D1)                ;jumps to opcode table entry (A0 = OP_TABLE)
 
 
 
@@ -305,31 +330,81 @@ opcode1111:
 ;once in OP_XXX_TABLE , we will use these entries to jump to specific op code to put into buffer
 
 OP_0000_TABLE:
-    jmp OP_ORI   
+    jmp OP_ORI                                      ;0  
+    jmp OP_UNSUPPORTED_OPCODE                       ;1
+    jmp OP_ANDI                                     ;2
+    jmp OP_UNSUPPORTED_OPCODE                       ;3
+    jmp OP_SUBI                                     ;4
+    jmp OP_UNSUPPORTED_OPCODE                       ;5
+    jmp OP_ADDI                                     ;6
+    jmp OP_UNSUPPORTED_OPCODE                       ;7
+    jmp OP_UNSUPPORTED_OPCODE                       ;8
+    jmp OP_UNSUPPORTED_OPCODE                       ;9
+    jmp OP_EORI                                     ;10
+    jmp OP_UNSUPPORTED_OPCODE                       ;11
+    jmp OP_CMPI                                     ;12
+    jmp OP_UNSUPPORTED_OPCODE                       ;13
+    jmp OP_UNSUPPORTED_OPCODE                       ;14
+    jmp OP_UNSUPPORTED_OPCODE                       ;15
+
+;OP_0001_TABLE:
+;    jmp OP_MOVEB
 
 
-OP_0001_TABLE:
-    jmp OP_MOVE.B
+;OP_0010_TABLE:
+;   jmp OP_MOVEAL
+;   jmp OP_MOVEL
 
 
-OP_0010_TABLE:
-
-
-
-OP_0011_TABLE:
+;OP_0011_TABLE:
 
 
 
+;NOP, MOVEM, LEA (CLR, NOT, EXT, TRAP, STOP, RTE, RTS, JSR, JMP     $4
+;NOP    1110
+;MOVEM  1D00
+;LEA    AN1
 OP_0100_TABLE:
+    jmp OP_UNSUPPORTED_OPCODE                           ;0  
+    jmp OP_LEA                                          ;1      (address 0001)
+    jmp OP_UNSUPPORTED_OPCODE                           ;2
+    jmp OP_LEA                                          ;3      (address 0011)
+    jmp OP_UNSUPPORTED_OPCODE                           ;4 
+    jmp OP_LEA                                          ;5      (address 0101)
+    jmp OP_UNSUPPORTED_OPCODE                           ;6 
+    jmp OP_LEA                                          ;7      (address 0111) 
+    jmp OP_MOVEM_R2M                                    ;8 
+    jmp OP_LEA                                          ;9      (address 1001) 
+    jmp OP_UNSUPPORTED_OPCODE                           ;10 
+    jmp OP_LEA                                          ;11     (address 1011) 
+    jmp OP_MOVEM_M2R                                    ;12 
+    jmp OP_LEA                                          ;13     (address 1101)
+    jmp OP_NOP                                          ;14
+    jmp OP_LEA                                          ;15     (address 1111)
+
+
+;OP_0101_TABLE:
 
 
 
-OP_0101_TABLE:
-
-
-
+;BRA nibble 2 = 0000 (0) , BSR nibble 2 = 0001 (1)
 OP_0110_TABLE:
-
+    jmp OP_BRA                                          ;0
+    jmp OP_BSR                                          ;1
+    jmp OP_UNSUPPORTED_OPCODE                           ;2
+    jmp OP_UNSUPPORTED_OPCODE                           ;3
+    jmp OP_UNSUPPORTED_OPCODE                           ;4
+    jmp OP_UNSUPPORTED_OPCODE                           ;5
+    jmp OP_UNSUPPORTED_OPCODE                           ;6
+    jmp OP_UNSUPPORTED_OPCODE                           ;7
+    jmp OP_UNSUPPORTED_OPCODE                           ;8
+    jmp OP_UNSUPPORTED_OPCODE                           ;9
+    jmp OP_UNSUPPORTED_OPCODE                           ;10
+    jmp OP_UNSUPPORTED_OPCODE                           ;11
+    jmp OP_UNSUPPORTED_OPCODE                           ;12
+    jmp OP_UNSUPPORTED_OPCODE                           ;13
+    jmp OP_UNSUPPORTED_OPCODE                           ;14
+    jmp OP_UNSUPPORTED_OPCODE                           ;15
 
 
 OP_0111_TABLE:
@@ -372,32 +447,76 @@ OP_1111_TABLE:
 
 
 OP_ORI:
+    MOVE.B  #'O', (A2)+
+    MOVE.B  #'R', (A2)+
+    MOVE.B  #'I', (A2)+
+    
+    ;SOMETHING EXTRA FOR IMMEDIATE VALUE????
 
-
-
+    JSR     EA_START
+    JMP     OP_FINISH
 
 OP_ANDI:  ;(optional)
+    MOVE.B  #'A', (A2)+
+    MOVE.B  #'N', (A2)+
+    MOVE.B  #'D', (A2)+
+    MOVE.B  #'I', (A2)+
+    
+    ;SOMETHING EXTRA FOR IMMEDIATE VALUE????
 
-
+    JSR     EA_START
+    JMP     OP_FINISH
 
 
 OP_SUBI:  ;(optional)
+    MOVE.B  #'S', (A2)+
+    MOVE.B  #'U', (A2)+
+    MOVE.B  #'B', (A2)+
+    MOVE.B  #'I', (A2)+
+    
+    ;SOMETHING EXTRA FOR IMMEDIATE VALUE????
 
+    JSR     EA_START
+    JMP     OP_FINISH
 
 
 OP_ADDI:  ;(optional)
+    MOVE.B  #'A', (A2)+
+    MOVE.B  #'D', (A2)+
+    MOVE.B  #'D', (A2)+
+    MOVE.B  #'I', (A2)+
+    
+    ;SOMETHING EXTRA FOR IMMEDIATE VALUE????
 
+    JSR     EA_START
+    JMP     OP_FINISH
 
 
 OP_EORI:  ;(optional)
+    MOVE.B  #'E', (A2)+
+    MOVE.B  #'O', (A2)+
+    MOVE.B  #'R', (A2)+
+    MOVE.B  #'I', (A2)+
+    
+    ;SOMETHING EXTRA FOR IMMEDIATE VALUE????
 
+    JSR     EA_START
+    JMP     OP_FINISH
 
 
 OP_CMPI:  ;(optional)
+    MOVE.B  #'C', (A2)+
+    MOVE.B  #'M', (A2)+
+    MOVE.B  #'P', (A2)+
+    MOVE.B  #'I', (A2)+
+    
+    ;SOMETHING EXTRA FOR IMMEDIATE VALUE????
+
+    JSR     EA_START
+    JMP     OP_FINISH
 
 
-
-OP_MOVE.B:
+OP_MOVEB:
     MOVE.B  #'M', (A2)+
     MOVE.B  #'O', (A2)+
     MOVE.B  #'V', (A2)+
@@ -408,25 +527,61 @@ OP_MOVE.B:
     JSR     EA_START
     JMP     OP_FINISH
 
+OP_MOVEAL:
+    MOVE.B  #'M', (A2)+
+    MOVE.B  #'O', (A2)+
+    MOVE.B  #'V', (A2)+
+    MOVE.B  #'E', (A2)+
+    MOVE.B  #'A', (A2)+
+    MOVE.B  #'.', (A2)+
+    MOVE.B  #'L', (A2)+
+    
+    JSR     EA_START
+    JMP     OP_FINISH
 
-OP_MOVEA.L:
+OP_MOVEL:
+    MOVE.B  #'M', (A2)+
+    MOVE.B  #'O', (A2)+
+    MOVE.B  #'V', (A2)+
+    MOVE.B  #'E', (A2)+
+    MOVE.B  #'.', (A2)+
+    MOVE.B  #'L', (A2)+
+    
+    JSR     EA_START
+    JMP     OP_FINISH
 
 
+OP_MOVEAW:
+    MOVE.B  #'M', (A2)+
+    MOVE.B  #'O', (A2)+
+    MOVE.B  #'V', (A2)+
+    MOVE.B  #'E', (A2)+
+    MOVE.B  #'A', (A2)+
+    MOVE.B  #'.', (A2)+
+    MOVE.B  #'W', (A2)+
+    
+    JSR     EA_START
+    JMP     OP_FINISH
 
-OP_MOVE.L:
 
-
-
-OP_MOVEA.W:
-
-
-
-OP_MOVE.W:
-
+OP_MOVEW:
+    MOVE.B  #'M', (A2)+
+    MOVE.B  #'O', (A2)+
+    MOVE.B  #'V', (A2)+
+    MOVE.B  #'E', (A2)+
+    MOVE.B  #'.', (A2)+
+    MOVE.B  #'W', (A2)+
+    
+    JSR     EA_START
+    JMP     OP_FINISH
 
 
 OP_NOP:
-
+    MOVE.B  #'N', (A2)+
+    MOVE.B  #'O', (A2)+
+    MOVE.B  #'P', (A2)+
+    
+    JMP     OP_FINISH
 
 
 OP_MOVEM:
@@ -434,8 +589,12 @@ OP_MOVEM:
 
 
 OP_LEA:
+    MOVE.B  #'L', (A2)+
+    MOVE.B  #'E', (A2)+
+    MOVE.B  #'A', (A2)+
 
-
+    JSR     EA_START
+    JMP     OP_FINISH
 
 OP_CLR:  ;(optional)
 
@@ -474,8 +633,13 @@ OP_JMP:  ;(optional)
 
 
 OP_ADDQ:
+    MOVE.B  #'A', (A2)+
+    MOVE.B  #'D', (A2)+
+    MOVE.B  #'D', (A2)+
+    MOVE.B  #'Q', (A2)+
 
-
+    JSR     EA_START
+    JMP     OP_FINISH
 
 OP_SUBQ:  ;(optional)
 
@@ -568,6 +732,27 @@ OP_ROL:  ;(optional)
 OP_ROR:  ;(optional)
 
 
+
+OP_MOVEM_R2M:
+    MOVE.B  #'M', (A2)+
+    MOVE.B  #'O', (A2)+
+    MOVE.B  #'V', (A2)+
+    MOVE.B  #'E', (A2)+
+    MOVE.B  #'M', (A2)+
+    
+    JSR     EA_START
+    JMP     OP_FINISH
+
+
+OP_MOVEM_M2R:
+    MOVE.B  #'M', (A2)+
+    MOVE.B  #'O', (A2)+
+    MOVE.B  #'V', (A2)+
+    MOVE.B  #'E', (A2)+
+    MOVE.B  #'M', (A2)+
+    
+    JSR     EA_START
+    JMP     OP_FINISH
 
 
 OP_UNSUPPORTED_OPCODE:
@@ -765,6 +950,7 @@ buffer                  ;storing op code
     
 
     END    START        ; last line of source
+
 
 
 
