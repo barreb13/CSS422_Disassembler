@@ -161,7 +161,8 @@ OP_FINISH:
 
 OP_DATA_CLR:
     CLR.L       D3                  ; ? What is D3????
-    MOVE.B      #buffer_size,D3     ; put 64 into D3
+    ;MOVE.B      #buffer_size,D3     ; put 64 into D3
+    MOVE.B      #10,D3     ; put 10 into D3                                                                 ;delete after testing and use 64
     LEA         buffer, A4          ; what address register?
 
 OP_DATA_CLR_LOOP:
@@ -328,7 +329,7 @@ opcode1101:
     
     ;at this point we have our bits of interest in bits 1,0
     
-    CMP         #11,D1                              ;check if bits == 11
+    CMP         #3,D1                              ;check if bits == 11
     BEQ         OP_ADDA                             ;if yes, branch ADDA
     BRA         OP_ADD                              ;else branch ADD
 
@@ -341,7 +342,8 @@ opcode1110:
     MOVE.L      D0, D1
     ANDI.W      #nibble2, D1
     MOVE.B      #right8, D2
-    LSR.W       D2, D1
+    LSR.W       D2, D1                              ;D1 has 0003 or 0004
+    ANDI.W      #0001,D1                           ;isolate single bit
     
     ;at this point we have our single bit of interest in bit 0
     
@@ -736,8 +738,8 @@ OP_DIVU:
     MOVE.B  #'I', (A2)+
     MOVE.B  #'V', (A2)+
     MOVE.B  #'U', (A2)+
-    MOVE.B  #'.', (A2)+
-    MOVE.B  #'W', (A2)+  
+    ;MOVE.B  #'.', (A2)+
+    ;MOVE.B  #'W', (A2)+  
   
     JSR     EA_START
     JMP     OP_FINISH    
@@ -759,6 +761,7 @@ OP_SUB:
     ;to determine size... bits 7 and 6? (.b, .w, .l)
     ;D0 HAS COMPLETE OP CODE INSTRUCTION (XXXX)
     
+    ;call OP_CHECK_SIZE to append a .b/.w/.l
     JSR     OP_CHECK_SIZE
     
     ;at this point it will return with SUB.X and go to EA_START
@@ -874,6 +877,9 @@ OP_MOVEM_R2M:
     MOVE.B  #'E', (A2)+
     MOVE.B  #'M', (A2)+
     
+    ;call OP_CHECK_SIZE to append a .b/.w/.l
+    JSR     OP_CHECK_SIZE
+    
     JSR     EA_START
     JMP     OP_FINISH
 
@@ -884,6 +890,9 @@ OP_MOVEM_M2R:
     MOVE.B  #'V', (A2)+
     MOVE.B  #'E', (A2)+
     MOVE.B  #'M', (A2)+
+    
+    ;call OP_CHECK_SIZE to append a .b/.w/.l
+    JSR     OP_CHECK_SIZE
     
     JSR     EA_START
     JMP     OP_FINISH
@@ -935,6 +944,7 @@ OP_CHECK_SIZE_ADDA:
     
     ;at this point we have our single bit in bit 0
     
+    ANDI.W  #0001,D1                            ;isolate bit 0
     CMP     #0,D1                               ;check if bit == 0
     BEQ     OP_SIZE_WORD                        ;if yes, size = word
     BRA     OP_SIZE_LONG                        ;else, size = long
@@ -1131,6 +1141,7 @@ buffer                  ;storing op code
     
 
     END    START        ; last line of source
+
 
 
 
