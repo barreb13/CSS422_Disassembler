@@ -1,11 +1,11 @@
 00001000 Starting Address
 Assembler used: EASy68K Editor/Assembler v5.16.01
-Created On: 2/28/2021 12:38:12 PM
+Created On: 3/3/2021 12:20:26 PM
 
 00000000                             1  *-----------------------------------------------------------
-00000000                             2  * Title      : Disassembler V1.6
+00000000                             2  * Title      : Disassembler V1.7
 00000000                             3  * Written by : Brent and Parker
-00000000                             4  * Date       : 2/27/21
+00000000                             4  * Date       : 3/2/21
 00000000                             5  * Description: Final Project for CSS 422
 00000000                             6  *-----------------------------------------------------------
 00000000                             7  
@@ -33,1118 +33,1300 @@ Created On: 2/28/2021 12:38:12 PM
 00000000  =00000018                 29  right24             EQU     24      ;shift 24 to extract 1st byte
 00000000  =000001C0                 30  dest_mode           EQU     $01C0   ; --> 0000 0001 1100 0000 (used for destination in MOVE/MOVEA
 00000000                            31  
-00001000                            32      ORG    $1000
-00001000                            33  START:                              ;first instruction of program
-00001000  4FF9 000A0000             34      LEA     stack, SP               ;SP @ $A0000
-00001006                            35  
-00001006                            36  
-00001006                            37  
-00001006                            38  ;********************************** Welcome Message ******************************************** 
-00001006                            39  WELCOME:
-00001006  43F9 0000177C             40      LEA     welcome_message,A1      ;load the welcome message into A1
-0000100C  103C 000E                 41      MOVE.B  #14,D0
-00001010  4E4F                      42      TRAP    #15                     ;print contents of welcome_message
-00001012                            43      
-00001012                            44  
-00001012                            45  
-00001012                            46  ;*********************************** Get Starting Address *************************************** 
-00001012                            47  GET_STARTING_ADDRESS:
-00001012  103C 000E                 48      MOVE.B  #14,D0    
-00001016  43F9 0000179A             49      LEA     get_start_address,A1    ;load the get_start_address message into A1
-0000101C  4E4F                      50      TRAP    #15                     ;print get_start_address
-0000101E                            51      
-0000101E  43F9 00001826             52      LEA     ascii_start,A1          ;store
-00001024  103C 0002                 53      MOVE.B  #2,D0                   ;get user input    
-00001028  4E4F                      54      TRAP    #15                     ;another trap to get input
-0000102A  4EB9 000016AE             55      JSR     ATOI                    ;address is now in hex format in memory location
-00001030                            56      
-00001030                            57      ;??                             MOVE.L  (A1),D3
-00001030                            58      
-00001030                            59      ;perform checks (later)
-00001030                            60      
-00001030                            61      
-00001030  2A39 00001826             62      MOVE.l    (ascii_start),D5      ;load into A5
-00001036  2A45                      63      MOVE.l    D5,A5                ;load into A5
-00001038                            64  
-00001038                            65  
-00001038                            66  ;******************************** Get Ending Address ******************************************** 
-00001038                            67  GET_ENDING_ADDRESS: 
-00001038  103C 000E                 68      MOVE.B  #14,D0
-0000103C  43F9 000017CB             69      LEA     get_end_address,A1      ;load the get_end_address message into A1  
-00001042  4E4F                      70      TRAP    #15                     ;print get_end_address
-00001044                            71      
-00001044  43F9 0000183A             72      LEA     ascii_end,A1            ;store 
-0000104A  103C 0002                 73      MOVE.B  #2,D0                   ;get user input
-0000104E  4E4F                      74      TRAP    #15                     ;another trap to get intput
-00001050  4EB9 000016AE             75      JSR ATOI
-00001056                            76  
-00001056                            77      ;perform checks (later)
-00001056                            78  
-00001056  2C39 0000183A             79      MOVE.l    (ascii_end),D6      ;load into A6
-0000105C  2C46                      80      MOVE.l    D6,A6               ;load into A6
-0000105E                            81  
-0000105E                            82  
-0000105E                            83  
-0000105E                            84  
-0000105E                            85  ;************************************ Main Loop???? ***********************************************
-0000105E                            86  ;get pointer to first given address
-0000105E                            87  ;pull hex code from that address and store in A1?
-0000105E                            88  ;take hex code and go to OP_TABLE
-0000105E                            89  
-0000105E                            90  
-0000105E                            91  ;A5 = starting address
-0000105E                            92  ;A6 = ending address
-0000105E                            93  START_DECODING:
-0000105E                            94      ;CLR.L   D2                             ;clear screen line counter
-0000105E                            95  
-0000105E                            96  DECODING_LOOP:
-0000105E  4EB9 00001068             97      JSR     OP_START                       ;get complete line of instruction to decode   
-00001064                            98      
-00001064                            99  
-00001064                           100      ;print tot screen
-00001064                           101      
-00001064                           102      ;check if finished or if screen is filled
-00001064                           103      ;handle checks
-00001064                           104     
-00001064                           105      
-00001064                           106  DONE:
-00001064  FFFF FFFF                107      SIMHALT                                 ; halt simulator
-00001068                           108  
-00001068                           109  
-00001068                           110  
-00001068                           111  ;************************************ OP Stuff ********************************************************** 
-00001068                           112  
-00001068                           113  ;A0 = POINTER TO OP_TABLE???
-00001068                           114  ;A1 = 
-00001068                           115  ;A2 = buffer (this is our decoded string that will print to screen)
-00001068                           116  ;A3 = 
-00001068                           117  ;A4 = current memory address for buffer (used for clearing????)
-00001068                           118  ;A5 = starting address / current address in memory
-00001068                           119  ;A6 = ending address
-00001068                           120  ;A7 = SP
-00001068                           121  
-00001068                           122  ;D0
-00001068                           123  ;D1
-00001068                           124  ;D2 = ?
-00001068                           125  ;D3 = buffer size (used for loop = 64)
-00001068                           126  ;D4 = 
-00001068                           127  ;D5
-00001068                           128  ;D6
-00001068                           129  ;D7
-00001068                           130  
-00001068                           131  OP_START
-00001068                           132      ;get complete line? 
-00001068                           133      ;everything happens in here
-00001068                           134      
-00001068                           135      ;MOVEM.L         D2/A6, -(SP)
-00001068                           136  
-00001068  4EB9 000010A0            137      JSR         OP_DATA_CLR         ;clear buffer
-0000106E  45F9 0000184E            138      LEA         buffer, A2          ;A2 now points to buffer, which is cleared
-00001074                           139      
-00001074                           140  
-00001074                           141      ;print out current mem address by putting into buffer and then adding a ' ' (tab)
-00001074  7403                     142      MOVE.L      #$0003,D2           ;? BINARY --> 0011 ?
-00001076  4EB9 0000172E            143      JSR         ITOA_ADDRESS        ;convert A5 (current address) to ASCII and put in buffer
-0000107C  14FC 0009                144      MOVE.B      #$09, (A2)+         ;adds a ' ' to buffer
-00001080                           145      
-00001080                           146      ;at this point buffer has the memory address and a space, ready for op code                     !!TESTED UP UNTIL THIS POINT AND GOOD!!
-00001080                           147      
-00001080  41F9 000010B6            148      LEA         OP_TABLE, A0
-00001086  4280                     149      CLR.L       D0
-00001088  301D                     150      MOVE.W      (A5)+,D0            ;moves opcode from current address into D0
-0000108A  2200                     151      MOVE.L      D0,D1               ;should move into D1
-0000108C  143C 000C                152      MOVE.B      #right12,D2         ;move immediate value 12 into D2
-00001090  E469                     153      LSR.W       D2,D1               ;shift D1 by 12 bits, leaving just 4 bits (this is our opcode???)
-00001092  C2FC 0006                154      MULU        #6,D1               ;computes opcode table jump displacement
-00001096  4EF0 1000                155      JMP         0(A0,D1)            ;jumps to opcode table entry (A0 = OP_TABLE)
-0000109A                           156  
-0000109A                           157  OP_FINISH:
-0000109A  4CDF 4004                158      MOVEM.L     (SP)+, D2/A6
-0000109E  4E75                     159      RTS                             ;returns to DECODING_LOOP !?!?!?!?!?
-000010A0                           160  
-000010A0                           161  
-000010A0                           162  OP_DATA_CLR:
-000010A0  4283                     163      CLR.L       D3                  ; ? What is D3????
-000010A2                           164      ;MOVE.B      #buffer_size,D3     ; put 64 into D3
-000010A2  163C 000A                165      MOVE.B      #10,D3     ; put 10 into D3                                                                 ;delete after testing and use 64
-000010A6  49F9 0000184E            166      LEA         buffer, A4          ; what address register?
-000010AC                           167  
-000010AC                           168  OP_DATA_CLR_LOOP:
-000010AC  18FC 0000                169      MOVE.B      #0, (A4)+
-000010B0  5343                     170      SUBI        #1, D3
-000010B2  6EF8                     171      BGT         OP_DATA_CLR_LOOP
-000010B4  4E75                     172      RTS                                 ;need RTS to return
-000010B6                           173  
-000010B6                           174  
-000010B6                           175  ;********************************* jump table ****************************************
-000010B6                           176  OP_TABLE:
-000010B6  4EF9 00001116            177      JMP         opcode0000              ;ORI (ANDI, SUBI, ADDI, EORI, CMPI)                                 $0
-000010BC  4EF9 00001130            178      JMP         opcode0001              ;MOVE.B                                                             $1    
-000010C2  4EF9 00001136            179      JMP         opcode0010              ;MOVEA.L, MOVE.L                                                    $2
-000010C8  4EF9 00001150            180      JMP         opcode0011              ;MOVEA.W MOVE.W                                                     $3
-000010CE  4EF9 0000116A            181      JMP         opcode0100              ;NOP, MOVEM, LEA (CLR, NOT, EXT, TRAP, STOP, RTE, RTS, JSR, JMP     $4
-000010D4  4EF9 00001184            182      JMP         opcode0101              ;ADDQ (SUBQ)                                                        $5
-000010DA  4EF9 0000118A            183      JMP         opcode0110              ;BRA.bw, BSR.bw (BEQ)                                               $6
-000010E0  4EF9 000011A4            184      JMP         opcode0111              ;MOVEQ.l                                                            $7
-000010E6  4EF9 000011AA            185      JMP         opcode1000              ;DIVU (DIVS, OR)                                                    $8
-000010EC  4EF9 000011B0            186      JMP         opcode1001              ;SUB                                                                $9
-000010F2  4EF9 000011B6            187      JMP         opcode1010              ;not assigned                                                       $A
-000010F8  4EF9 000011BC            188      JMP         opcode1011              ;CMP (EOR)                                                          $B
-000010FE  4EF9 000011C2            189      JMP         opcode1100              ;MULU (MULS, AND)                                                   $C
-00001104  4EF9 000011C8            190      JMP         opcode1101              ;ADD, ADDA                                                          $D
-0000110A  4EF9 000011E4            191      JMP         opcode1110              ;ASL, ASR (LSL, LSR, ROL, ROR)                                      $E
-00001110  4EF9 00001204            192      JMP         opcode1111              ;not assigned                                                       $F
-00001116                           193  
-00001116                           194  
-00001116                           195  
-00001116                           196  
-00001116                           197  ;A0 = POINTER TO OP_TABLE???
-00001116                           198  ;A1 = 
-00001116                           199  ;A2 = buffer (this is our decoded string that will print to screen)
-00001116                           200  ;A3 = pointer to op_xxx_table
-00001116                           201  ;A4 = current memory address for buffer (used for clearing????)
-00001116                           202  ;A5 = starting address / current address in memory
-00001116                           203  ;A6 = ending address
-00001116                           204  ;A7 = SP
-00001116                           205  
-00001116                           206  ;D0 = full instruction
-00001116                           207  ;D1 = full instruction for manipulating (temporary)
-00001116                           208  ;D2 = will store immediate value for comparing
-00001116                           209  ;D3 = buffer size (used for loop = 64)
-00001116                           210  ;D4 = 
-00001116                           211  ;D5 = 
-00001116                           212  ;D6 = 
-00001116                           213  ;D7 = 
+00000000                            32  
+00000000  =00000000                 33  ea_type_immediate   EQU     0
+00000000  =00000001                 34  ea_type_move        EQU     1
+00000000  =00000002                 35  ea_type_movea       EQU     2
+00000000  =0000000C                 36  ea_type_movea6      EQU     12
+00000000  =00000003                 37  ea_type_lea         EQU     3
+00000000  =00000004                 38  ea_type_destonly    EQU     4
+00000000  =00000005                 39  ea_type_ext         EQU     5
+00000000  =00000006                 40  ea_type_movem       EQU     6
+00000000  =00000007                 41  ea_type_trap        EQU     7
+00000000  =00000008                 42  ea_type_quick       EQU     8
+00000000  =00000009                 43  ea_type_branch      EQU     9
+00000000                            44  
+00000000                            45  ;flags???
+00000000                            46  
+00000000                            47  
+00000000                            48  
+00000000                            49  
+00000000                            50  
+00001000                            51      ORG    $1000
+00001000                            52  START:                              ;first instruction of program
+00001000  4FF9 000A0000             53      LEA     stack, SP               ;SP @ $A0000
+00001006                            54  
+00001006                            55  
+00001006                            56  
+00001006                            57  ;********************************** Welcome Message ******************************************** 
+00001006                            58  WELCOME:
+00001006  43F9 00001824             59      LEA     welcome_message,A1      ;load the welcome message into A1
+0000100C  103C 000E                 60      MOVE.B  #14,D0
+00001010  4E4F                      61      TRAP    #15                     ;print contents of welcome_message
+00001012                            62      
+00001012                            63  
+00001012                            64  
+00001012                            65  ;*********************************** Get Starting Address *************************************** 
+00001012                            66  GET_STARTING_ADDRESS:
+00001012  103C 000E                 67      MOVE.B  #14,D0    
+00001016  43F9 00001842             68      LEA     get_start_address,A1    ;load the get_start_address message into A1
+0000101C  4E4F                      69      TRAP    #15                     ;print get_start_address
+0000101E                            70      
+0000101E  43F9 000018CE             71      LEA     ascii_start,A1          ;store
+00001024  103C 0002                 72      MOVE.B  #2,D0                   ;get user input    
+00001028  4E4F                      73      TRAP    #15                     ;another trap to get input
+0000102A  4EB9 000016CE             74      JSR     ATOI                    ;address is now in hex format in memory location
+00001030                            75      
+00001030                            76      ;??                             MOVE.L  (A1),D3
+00001030                            77      
+00001030                            78      ;perform checks (later)
+00001030                            79      
+00001030                            80      
+00001030  2A39 000018CE             81      MOVE.l    (ascii_start),D5      ;load into A5
+00001036  2A45                      82      MOVE.l    D5,A5                ;load into A5
+00001038                            83  
+00001038                            84  
+00001038                            85  ;******************************** Get Ending Address ******************************************** 
+00001038                            86  GET_ENDING_ADDRESS: 
+00001038  103C 000E                 87      MOVE.B  #14,D0
+0000103C  43F9 00001873             88      LEA     get_end_address,A1      ;load the get_end_address message into A1  
+00001042  4E4F                      89      TRAP    #15                     ;print get_end_address
+00001044                            90      
+00001044  43F9 000018E2             91      LEA     ascii_end,A1            ;store 
+0000104A  103C 0002                 92      MOVE.B  #2,D0                   ;get user input
+0000104E  4E4F                      93      TRAP    #15                     ;another trap to get intput
+00001050  4EB9 000016CE             94      JSR ATOI
+00001056                            95  
+00001056                            96      ;perform checks (later)
+00001056                            97  
+00001056  2C39 000018E2             98      MOVE.l    (ascii_end),D6      ;load into A6
+0000105C  2C46                      99      MOVE.l    D6,A6               ;load into A6
+0000105E                           100  
+0000105E                           101  
+0000105E                           102  
+0000105E                           103  
+0000105E                           104  ;************************************ Main Loop???? ***********************************************
+0000105E                           105  ;get pointer to first given address
+0000105E                           106  ;pull hex code from that address and store in A1?
+0000105E                           107  ;take hex code and go to OP_TABLE
+0000105E                           108  
+0000105E                           109  
+0000105E                           110  ;A5 = starting address
+0000105E                           111  ;A6 = ending address
+0000105E                           112  START_DECODING:
+0000105E                           113      ;CLR.L   D2                             ;clear screen line counter
+0000105E                           114  
+0000105E                           115  DECODING_LOOP:
+0000105E  4EB9 00001068            116      JSR     OP_START                       ;get complete line of instruction to decode   
+00001064                           117      
+00001064                           118  
+00001064                           119      ;print tot screen
+00001064                           120      
+00001064                           121      ;check if finished or if screen is filled
+00001064                           122      ;handle checks
+00001064                           123     
+00001064                           124      
+00001064                           125  DONE:
+00001064  FFFF FFFF                126      SIMHALT                                 ; halt simulator
+00001068                           127  
+00001068                           128  
+00001068                           129  
+00001068                           130  ;************************************ OP Stuff ********************************************************** 
+00001068                           131  
+00001068                           132  ;A0 = POINTER TO OP_TABLE???
+00001068                           133  ;A1 = 
+00001068                           134  ;A2 = buffer (this is our decoded string that will print to screen)
+00001068                           135  ;A3 = 
+00001068                           136  ;A4 = current memory address for buffer (used for clearing????)
+00001068                           137  ;A5 = starting address / current address in memory
+00001068                           138  ;A6 = ending address
+00001068                           139  ;A7 = SP
+00001068                           140  
+00001068                           141  ;D0
+00001068                           142  ;D1
+00001068                           143  ;D2 = ?
+00001068                           144  ;D3 = buffer size (used for loop = 64)
+00001068                           145  ;D4 = 
+00001068                           146  ;D5
+00001068                           147  ;D6
+00001068                           148  ;D7
+00001068                           149  
+00001068                           150  OP_START
+00001068                           151      ;get complete line? 
+00001068                           152      ;everything happens in here
+00001068                           153      
+00001068                           154      ;MOVEM.L         D2/A6, -(SP)
+00001068                           155  
+00001068  4EB9 000010A0            156      JSR         OP_DATA_CLR         ;clear buffer
+0000106E  45F9 000018F6            157      LEA         buffer, A2          ;A2 now points to buffer, which is cleared
+00001074                           158      
+00001074                           159  
+00001074                           160      ;print out current mem address by putting into buffer and then adding a ' ' (tab)
+00001074  7403                     161      MOVE.L      #$0003,D2           ;? BINARY --> 0011 ?
+00001076  4EB9 0000174E            162      JSR         ITOA_ADDRESS        ;convert A5 (current address) to ASCII and put in buffer
+0000107C  14FC 0009                163      MOVE.B      #$09, (A2)+         ;adds a ' ' to buffer
+00001080                           164      
+00001080                           165      ;at this point buffer has the memory address and a space, ready for op code                     !!TESTED UP UNTIL THIS POINT AND GOOD!!
+00001080                           166      
+00001080  41F9 000010B6            167      LEA         OP_TABLE, A0
+00001086  4280                     168      CLR.L       D0
+00001088  301D                     169      MOVE.W      (A5)+,D0            ;moves opcode from current address into D0
+0000108A  2200                     170      MOVE.L      D0,D1               ;should move into D1
+0000108C  143C 000C                171      MOVE.B      #right12,D2         ;move immediate value 12 into D2
+00001090  E469                     172      LSR.W       D2,D1               ;shift D1 by 12 bits, leaving just 4 bits (this is our opcode???)
+00001092  C2FC 0006                173      MULU        #6,D1               ;computes opcode table jump displacement
+00001096  4EF0 1000                174      JMP         0(A0,D1)            ;jumps to opcode table entry (A0 = OP_TABLE)
+0000109A                           175  
+0000109A                           176  OP_FINISH:
+0000109A  4CDF 4004                177      MOVEM.L     (SP)+, D2/A6
+0000109E  4E75                     178      RTS                             ;returns to DECODING_LOOP !?!?!?!?!?
+000010A0                           179  
+000010A0                           180  
+000010A0                           181  OP_DATA_CLR:
+000010A0  4283                     182      CLR.L       D3                  ; ? What is D3????
+000010A2                           183      ;MOVE.B      #buffer_size,D3     ; put 64 into D3
+000010A2  163C 000A                184      MOVE.B      #10,D3     ; put 10 into D3                                                                 ;delete after testing and use 64
+000010A6  49F9 000018F6            185      LEA         buffer, A4          ; what address register?
+000010AC                           186  
+000010AC                           187  OP_DATA_CLR_LOOP:
+000010AC  18FC 0000                188      MOVE.B      #0, (A4)+
+000010B0  5343                     189      SUBI        #1, D3
+000010B2  6EF8                     190      BGT         OP_DATA_CLR_LOOP
+000010B4  4E75                     191      RTS                                 ;need RTS to return
+000010B6                           192  
+000010B6                           193  
+000010B6                           194  ;********************************* jump table ****************************************
+000010B6                           195  OP_TABLE:
+000010B6  4EF9 00001116            196      JMP         opcode0000              ;ORI (ANDI, SUBI, ADDI, EORI, CMPI)                                 $0
+000010BC  4EF9 00001130            197      JMP         opcode0001              ;MOVE.B                                                             $1    
+000010C2  4EF9 00001136            198      JMP         opcode0010              ;MOVEA.L, MOVE.L                                                    $2
+000010C8  4EF9 00001150            199      JMP         opcode0011              ;MOVEA.W MOVE.W                                                     $3
+000010CE  4EF9 0000116A            200      JMP         opcode0100              ;NOP, MOVEM, LEA (CLR, NOT, EXT, TRAP, STOP, RTE, RTS, JSR, JMP     $4
+000010D4  4EF9 00001184            201      JMP         opcode0101              ;ADDQ (SUBQ)                                                        $5
+000010DA  4EF9 0000118A            202      JMP         opcode0110              ;BRA.bw, BSR.bw (BEQ)                                               $6
+000010E0  4EF9 000011A4            203      JMP         opcode0111              ;MOVEQ.l                                                            $7
+000010E6  4EF9 000011AA            204      JMP         opcode1000              ;DIVU (DIVS, OR)                                                    $8
+000010EC  4EF9 000011B0            205      JMP         opcode1001              ;SUB                                                                $9
+000010F2  4EF9 000011B6            206      JMP         opcode1010              ;not assigned                                                       $A
+000010F8  4EF9 000011BC            207      JMP         opcode1011              ;CMP (EOR)                                                          $B
+000010FE  4EF9 000011C2            208      JMP         opcode1100              ;MULU (MULS, AND)                                                   $C
+00001104  4EF9 000011C8            209      JMP         opcode1101              ;ADD, ADDA                                                          $D
+0000110A  4EF9 000011E4            210      JMP         opcode1110              ;ASL, ASR (LSL, LSR, ROL, ROR)                                      $E
+00001110  4EF9 00001204            211      JMP         opcode1111              ;not assigned                                                       $F
+00001116                           212  
+00001116                           213  
 00001116                           214  
 00001116                           215  
-00001116                           216  
-00001116                           217  ;ORI (ANDI, SUBI, ADDI, EORI, CMPI)                                 $0
-00001116                           218  opcode0000:                                 
-00001116  2200                     219      MOVE.L      D0,D1                   ;D1 has full instruction
-00001118  0241 0F00                220      ANDI.W      #nibble2,D1             ;check bits 11,10,9,8
-0000111C  143C 0008                221      MOVE.B      #right8, D2             ;store immediate value 8 in D2
-00001120  E469                     222      LSR.W       D2, D1                  ;shift to isolate next nibble (bits 11-8)
-00001122  C2FC 0006                223      MULU        #6, D1                  ;multiply by 6 to get displacement
-00001126  47F9 0000120A            224      LEA         OP_0000_TABLE, A3       ;load op_0000_table into address register
-0000112C  4EF3 1000                225      JMP         0(A3,D1)                ;jumps to opcode table entry (A0 = OP_TABLE)
-00001130                           226  
-00001130                           227  ;MOVE.B                                                             $1
-00001130                           228  opcode0001:
-00001130  4EF9 000013E6            229      JMP         OP_MOVEB                ;no need to break down, only MOVE.B
-00001136                           230  
-00001136                           231  
-00001136                           232  ;MOVEA.L, MOVE.L                                                    $2
-00001136                           233  opcode0010:
-00001136  2200                     234      MOVE.L      D0,D1                   ;D1 has full instruction
-00001138  0241 01C0                235      ANDI        #dest_mode, D1          ;0000 0001 1100 0000
-0000113C  143C 0006                236      MOVE.B      #right6, D2             ;D2 now 00000111
-00001140  E469                     237      LSR.W       D2, D1                  ;shifting destination mode in D1 to far right by 3
-00001142  B23C 0001                238      CMP.B       #1,D1                   ;does d1 = 001?
-00001146  6700 02C0                239      BEQ         OP_MOVEAL               ;if d1 = 001, go to MOVEA
-0000114A  4EF9 0000142E            240      JMP         OP_MOVEL                ;else jump to MOVEL
-00001150                           241      
-00001150                           242  
-00001150                           243  
-00001150                           244  
-00001150                           245  ;MOVEA.W MOVE.W                                                     $3
-00001150                           246  opcode0011:
-00001150  2200                     247      MOVE.L      D0,D1                   ;D1 has full instruction
-00001152  0241 01C0                248      ANDI        #dest_mode, D1          ;0000 0001 1100 0000
-00001156  143C 0006                249      MOVE.B      #right6, D2             ;D2 now 00000111
-0000115A  E469                     250      LSR.W       D2, D1                  ;shifting destination mode in D1 to far right by 3
-0000115C  B23C 0001                251      CMP.B       #1,D1                   ;does d1 = 001?
-00001160  6700 02EE                252      BEQ         OP_MOVEAW               ;if d1 = 001, go to MOVEAW
-00001164  4EF9 00001476            253      JMP         OP_MOVEW                ;else jump to MOVEW
-0000116A                           254  
-0000116A                           255  
-0000116A                           256  
-0000116A                           257  
-0000116A                           258  ;NOP, MOVEM, LEA (CLR, NOT, EXT, TRAP, STOP, RTE, RTS, JSR, JMP)     $4
-0000116A                           259  opcode0100:
-0000116A  2200                     260      MOVE.L      D0,D1                   ;D1 has full instruction
-0000116C  0241 0F00                261      ANDI.W      #nibble2,D1             ;check bits 11,10,9,8
-00001170  143C 0008                262      MOVE.B      #right8, D2             ;store immediate value 8 in D2
-00001174  E469                     263      LSR.W       D2, D1                  ;shift to isolate next nibble (bits 11-8)
-00001176  C2FC 0006                264      MULU        #6, D1                  ;multiply by 6 to get displacement
-0000117A  47F9 0000126A            265      LEA         OP_0100_TABLE, A3       ;load op_0000_table into address register
-00001180  4EF3 1000                266      JMP         0(A3,D1)                ;jumps to opcode table entry (A0 = OP_TABLE)
-00001184                           267  
-00001184                           268  
-00001184                           269  ;ADDQ (SUBQ)                                                        $5
-00001184                           270  opcode0101:
-00001184  4EF9 000014BE            271      JMP         OP_ADDQ
-0000118A                           272  
-0000118A                           273  
-0000118A                           274  
-0000118A                           275  
-0000118A                           276  ;BRA.bw, BSR.bw (BEQ)                                               $6
-0000118A                           277  opcode0110:
-0000118A  2200                     278      MOVE.L      D0,D1                   ;D1 has full instruction
-0000118C  0241 0F00                279      ANDI.W      #nibble2,D1             ;check bits 11,10,9,8
-00001190  143C 0008                280      MOVE.B      #right8, D2             ;store immediate value 8 in D2
-00001194  E469                     281      LSR.W       D2, D1                  ;shift to isolate next nibble (bits 11-8)
-00001196  C2FC 0006                282      MULU        #6, D1                  ;multiply by 6 to get displacement
-0000119A  47F9 000012CA            283      LEA         OP_0110_TABLE, A3       ;load op_0110_table into address register
-000011A0  4EF3 1000                284      JMP         0(A3,D1)                ;jumps to opcode table entry (A0 = OP_TABLE)
-000011A4                           285      
-000011A4                           286      ;come back and check when debugging. if this does not work then skip jump table
-000011A4                           287  
-000011A4                           288  
-000011A4                           289  ;MOVEQ                                                            $7
-000011A4                           290  opcode0111:
-000011A4  4EF9 0000150A            291      JMP         OP_MOVEQ
-000011AA                           292  
-000011AA                           293  
-000011AA                           294  
-000011AA                           295  ;DIVU (DIVS, OR)                                                    $8
-000011AA                           296  opcode1000:
-000011AA  4EF9 00001528            297      JMP         OP_DIVU
-000011B0                           298  
-000011B0                           299  
-000011B0                           300  ;SUB                                                                $9
-000011B0                           301  opcode1001:
-000011B0  4EF9 00001542            302      JMP         OP_SUB
-000011B6                           303  
-000011B6                           304  
-000011B6                           305  ;not assigned                                                       $A
-000011B6                           306  opcode1010:
-000011B6  4EF9 00001650            307      JMP         OP_UNSUPPORTED_OPCODE
-000011BC                           308  
-000011BC                           309  
-000011BC                           310  ;CMP (EOR)                                                          $B
-000011BC                           311  opcode1011:
-000011BC  4EF9 0000155E            312      JMP         OP_CMP
-000011C2                           313  
-000011C2                           314  
-000011C2                           315  ;MULU (MULS, AND)                                                   $C
-000011C2                           316  opcode1100:
-000011C2  4EF9 0000157A            317      JMP         OP_MULU
-000011C8                           318  
-000011C8                           319  
-000011C8                           320  ;ADD, ADDA                                                          $D
-000011C8                           321  opcode1101:
-000011C8                           322      ;ADD and ADDA differ on bits 6,7... ADD will never be 11 for bits 6,7... use as check
-000011C8  4241                     323      CLR         D1
-000011CA  4242                     324      CLR         D2
-000011CC  2200                     325      MOVE.L      D0,D1
-000011CE  0241 00F0                326      ANDI.W      #nibble3, D1
-000011D2  143C 0006                327      MOVE.B      #right6, D2
-000011D6  E469                     328      LSR.W       D2,D1
-000011D8                           329      
-000011D8                           330      ;at this point we have our bits of interest in bits 1,0
-000011D8                           331      
-000011D8  B27C 0003                332      CMP         #3,D1                              ;check if bits == 11
-000011DC  6700 03D2                333      BEQ         OP_ADDA                             ;if yes, branch ADDA
-000011E0  6000 03B2                334      BRA         OP_ADD                              ;else branch ADD
-000011E4                           335  
-000011E4                           336  
-000011E4                           337  
-000011E4                           338  ;ASL, ASR (LSL, LSR, ROL, ROR)                                      $E
-000011E4                           339  opcode1110:
-000011E4  4241                     340      CLR D1
-000011E6  4242                     341      CLR D2
-000011E8  2200                     342      MOVE.L      D0, D1
-000011EA  0241 0F00                343      ANDI.W      #nibble2, D1
-000011EE  143C 0008                344      MOVE.B      #right8, D2
-000011F2  E469                     345      LSR.W       D2, D1                              ;D1 has 0003 or 0004
-000011F4  0241 0001                346      ANDI.W      #0001,D1                           ;isolate single bit
-000011F8                           347      
-000011F8                           348      ;at this point we have our single bit of interest in bit 0
-000011F8                           349      
-000011F8  B27C 0000                350      CMP         #0,D1                           ;check if bit == 0
-000011FC  6700 03EE                351      BEQ         OP_ASR                          ;if yes, branch to ASR
-00001200  6000 03CE                352      BRA         OP_ASL                          ;else, branch to ASL
-00001204                           353  
-00001204                           354  
-00001204                           355  ;not assigned                                                       $F
-00001204                           356  opcode1111:
-00001204  4EF9 00001650            357      JMP         OP_UNSUPPORTED_OPCODE
-0000120A                           358  
-0000120A                           359  
-0000120A                           360  ;******************************** OP_XXX_TABLES ************************************
-0000120A                           361  ;once in OP_XXX_TABLE , we will use these entries to jump to specific op code to put into buffer
-0000120A                           362  
-0000120A                           363  OP_0000_TABLE:
-0000120A  4EF9 0000132A            364      jmp OP_ORI                                      ;0  
-00001210  4EF9 00001650            365      jmp OP_UNSUPPORTED_OPCODE                       ;1
-00001216  4EF9 00001346            366      jmp OP_ANDI                                     ;2
-0000121C  4EF9 00001650            367      jmp OP_UNSUPPORTED_OPCODE                       ;3
-00001222  4EF9 00001366            368      jmp OP_SUBI                                     ;4
-00001228  4EF9 00001650            369      jmp OP_UNSUPPORTED_OPCODE                       ;5
-0000122E  4EF9 00001386            370      jmp OP_ADDI                                     ;6
-00001234  4EF9 00001650            371      jmp OP_UNSUPPORTED_OPCODE                       ;7
-0000123A  4EF9 00001650            372      jmp OP_UNSUPPORTED_OPCODE                       ;8
-00001240  4EF9 00001650            373      jmp OP_UNSUPPORTED_OPCODE                       ;9
-00001246  4EF9 000013A6            374      jmp OP_EORI                                     ;10
-0000124C  4EF9 00001650            375      jmp OP_UNSUPPORTED_OPCODE                       ;11
-00001252  4EF9 000013C6            376      jmp OP_CMPI                                     ;12
-00001258  4EF9 00001650            377      jmp OP_UNSUPPORTED_OPCODE                       ;13
-0000125E  4EF9 00001650            378      jmp OP_UNSUPPORTED_OPCODE                       ;14
-00001264  4EF9 00001650            379      jmp OP_UNSUPPORTED_OPCODE                       ;15
-0000126A                           380  
-0000126A                           381  ;OP_0001_TABLE:
-0000126A                           382  ;    jmp OP_MOVEB
-0000126A                           383  
-0000126A                           384  
-0000126A                           385  ;OP_0010_TABLE:
-0000126A                           386  ;   jmp OP_MOVEAL
-0000126A                           387  ;   jmp OP_MOVEL
-0000126A                           388  
-0000126A                           389  
-0000126A                           390  ;OP_0011_TABLE:
-0000126A                           391  
-0000126A                           392  
-0000126A                           393  
-0000126A                           394  ;NOP, MOVEM, LEA (CLR, NOT, EXT, TRAP, STOP, RTE, RTS, JSR, JMP     $4
-0000126A                           395  ;NOP    1110
-0000126A                           396  ;MOVEM  1D00
-0000126A                           397  ;LEA    AN1
-0000126A                           398  OP_0100_TABLE:
-0000126A  4EF9 00001650            399      jmp OP_UNSUPPORTED_OPCODE                           ;0  
-00001270  4EF9 000014A8            400      jmp OP_LEA                                          ;1      (address 0001)
-00001276  4EF9 00001650            401      jmp OP_UNSUPPORTED_OPCODE                           ;2
-0000127C  4EF9 000014A8            402      jmp OP_LEA                                          ;3      (address 0011)
-00001282  4EF9 00001650            403      jmp OP_UNSUPPORTED_OPCODE                           ;4 
-00001288  4EF9 000014A8            404      jmp OP_LEA                                          ;5      (address 0101)
-0000128E  4EF9 00001650            405      jmp OP_UNSUPPORTED_OPCODE                           ;6 
-00001294  4EF9 000014A8            406      jmp OP_LEA                                          ;7      (address 0111) 
-0000129A  4EF9 00001608            407      jmp OP_MOVEM_R2M                                    ;8 
-000012A0  4EF9 000014A8            408      jmp OP_LEA                                          ;9      (address 1001) 
-000012A6  4EF9 00001650            409      jmp OP_UNSUPPORTED_OPCODE                           ;10 
-000012AC  4EF9 000014A8            410      jmp OP_LEA                                          ;11     (address 1011) 
-000012B2  4EF9 0000162C            411      jmp OP_MOVEM_M2R                                    ;12 
-000012B8  4EF9 000014A8            412      jmp OP_LEA                                          ;13     (address 1101)
-000012BE  4EF9 00001498            413      jmp OP_NOP                                          ;14
-000012C4  4EF9 000014A8            414      jmp OP_LEA                                          ;15     (address 1111)
-000012CA                           415  
-000012CA                           416  
-000012CA                           417  ;OP_0101_TABLE:
-000012CA                           418  
-000012CA                           419  
-000012CA                           420  
-000012CA                           421  ;BRA nibble 2 = 0000 (0) , BSR nibble 2 = 0001 (1)
-000012CA                           422  OP_0110_TABLE:
-000012CA  4EF9 000014DE            423      jmp OP_BRA                                          ;0
-000012D0  4EF9 000014F4            424      jmp OP_BSR                                          ;1
-000012D6  4EF9 00001650            425      jmp OP_UNSUPPORTED_OPCODE                           ;2
-000012DC  4EF9 00001650            426      jmp OP_UNSUPPORTED_OPCODE                           ;3
-000012E2  4EF9 00001650            427      jmp OP_UNSUPPORTED_OPCODE                           ;4
-000012E8  4EF9 00001650            428      jmp OP_UNSUPPORTED_OPCODE                           ;5
-000012EE  4EF9 00001650            429      jmp OP_UNSUPPORTED_OPCODE                           ;6
-000012F4  4EF9 00001650            430      jmp OP_UNSUPPORTED_OPCODE                           ;7
-000012FA  4EF9 00001650            431      jmp OP_UNSUPPORTED_OPCODE                           ;8
-00001300  4EF9 00001650            432      jmp OP_UNSUPPORTED_OPCODE                           ;9
-00001306  4EF9 00001650            433      jmp OP_UNSUPPORTED_OPCODE                           ;10
-0000130C  4EF9 00001650            434      jmp OP_UNSUPPORTED_OPCODE                           ;11
-00001312  4EF9 00001650            435      jmp OP_UNSUPPORTED_OPCODE                           ;12
-00001318  4EF9 00001650            436      jmp OP_UNSUPPORTED_OPCODE                           ;13
-0000131E  4EF9 00001650            437      jmp OP_UNSUPPORTED_OPCODE                           ;14
-00001324  4EF9 00001650            438      jmp OP_UNSUPPORTED_OPCODE                           ;15
-0000132A                           439  
-0000132A                           440  
-0000132A                           441  ;OP_0111_TABLE:
-0000132A                           442  
-0000132A                           443  
-0000132A                           444  
-0000132A                           445  ;OP_1000_TABLE:
-0000132A                           446  
-0000132A                           447  
-0000132A                           448  
-0000132A                           449  ;OP_1001_TABLE:
-0000132A                           450  
-0000132A                           451  
-0000132A                           452  
-0000132A                           453  OP_1010_TABLE:
-0000132A                           454  
-0000132A                           455  
-0000132A                           456  
-0000132A                           457  OP_1011_TABLE:
+00001116                           216  ;A0 = POINTER TO OP_TABLE???
+00001116                           217  ;A1 = 
+00001116                           218  ;A2 = buffer (this is our decoded string that will print to screen)
+00001116                           219  ;A3 = pointer to op_xxx_table
+00001116                           220  ;A4 = current memory address for buffer (used for clearing????)
+00001116                           221  ;A5 = starting address / current address in memory
+00001116                           222  ;A6 = ending address
+00001116                           223  ;A7 = SP
+00001116                           224  
+00001116                           225  ;D0 = full instruction
+00001116                           226  ;D1 = full instruction for manipulating (temporary)
+00001116                           227  ;D2 = will store immediate value for comparing
+00001116                           228  ;D3 = buffer size (used for loop = 64)
+00001116                           229  ;D4 = 
+00001116                           230  ;D5 = 
+00001116                           231  ;D6 = 
+00001116                           232  ;D7 = 
+00001116                           233  
+00001116                           234  
+00001116                           235  
+00001116                           236  ;ORI (ANDI, SUBI, ADDI, EORI, CMPI)                                 $0
+00001116                           237  opcode0000:                                 
+00001116  2200                     238      MOVE.L      D0,D1                   ;D1 has full instruction
+00001118  0241 0F00                239      ANDI.W      #nibble2,D1             ;check bits 11,10,9,8
+0000111C  143C 0008                240      MOVE.B      #right8, D2             ;store immediate value 8 in D2
+00001120  E469                     241      LSR.W       D2, D1                  ;shift to isolate next nibble (bits 11-8)
+00001122  C2FC 0006                242      MULU        #6, D1                  ;multiply by 6 to get displacement
+00001126  47F9 0000120A            243      LEA         OP_0000_TABLE, A3       ;load op_0000_table into address register
+0000112C  4EF3 1000                244      JMP         0(A3,D1)                ;jumps to opcode table entry (A0 = OP_TABLE)
+00001130                           245  
+00001130                           246  ;MOVE.B                                                             $1
+00001130                           247  opcode0001:
+00001130  4EF9 000013F2            248      JMP         OP_MOVEB                ;no need to break down, only MOVE.B
+00001136                           249  
+00001136                           250  
+00001136                           251  ;MOVEA.L, MOVE.L                                                    $2
+00001136                           252  opcode0010:
+00001136  2200                     253      MOVE.L      D0,D1                   ;D1 has full instruction
+00001138  0241 01C0                254      ANDI        #dest_mode, D1          ;0000 0001 1100 0000
+0000113C  143C 0006                255      MOVE.B      #right6, D2             ;D2 now 00000111
+00001140  E469                     256      LSR.W       D2, D1                  ;shifting destination mode in D1 to far right by 3
+00001142  B23C 0001                257      CMP.B       #1,D1                   ;does d1 = 001?
+00001146  6700 02CE                258      BEQ         OP_MOVEAL               ;if d1 = 001, go to MOVEA
+0000114A  4EF9 0000143E            259      JMP         OP_MOVEL                ;else jump to MOVEL
+00001150                           260      
+00001150                           261  
+00001150                           262  
+00001150                           263  
+00001150                           264  ;MOVEA.W MOVE.W                                                     $3
+00001150                           265  opcode0011:
+00001150  2200                     266      MOVE.L      D0,D1                   ;D1 has full instruction
+00001152  0241 01C0                267      ANDI        #dest_mode, D1          ;0000 0001 1100 0000
+00001156  143C 0006                268      MOVE.B      #right6, D2             ;D2 now 00000111
+0000115A  E469                     269      LSR.W       D2, D1                  ;shifting destination mode in D1 to far right by 3
+0000115C  B23C 0001                270      CMP.B       #1,D1                   ;does d1 = 001?
+00001160  6700 0300                271      BEQ         OP_MOVEAW               ;if d1 = 001, go to MOVEAW
+00001164  4EF9 0000148A            272      JMP         OP_MOVEW                ;else jump to MOVEW
+0000116A                           273  
+0000116A                           274  
+0000116A                           275  
+0000116A                           276  
+0000116A                           277  ;NOP, MOVEM, LEA (CLR, NOT, EXT, TRAP, STOP, RTE, RTS, JSR, JMP)     $4
+0000116A                           278  opcode0100:
+0000116A  2200                     279      MOVE.L      D0,D1                   ;D1 has full instruction
+0000116C  0241 0F00                280      ANDI.W      #nibble2,D1             ;check bits 11,10,9,8
+00001170  143C 0008                281      MOVE.B      #right8, D2             ;store immediate value 8 in D2
+00001174  E469                     282      LSR.W       D2, D1                  ;shift to isolate next nibble (bits 11-8)
+00001176  C2FC 0006                283      MULU        #6, D1                  ;multiply by 6 to get displacement
+0000117A  47F9 0000126A            284      LEA         OP_0100_TABLE, A3       ;load op_0000_table into address register
+00001180  4EF3 1000                285      JMP         0(A3,D1)                ;jumps to opcode table entry (A0 = OP_TABLE)
+00001184                           286  
+00001184                           287  
+00001184                           288  ;ADDQ (SUBQ)                                                        $5
+00001184                           289  opcode0101:
+00001184  4EF9 000014D6            290      JMP         OP_ADDQ
+0000118A                           291  
+0000118A                           292  
+0000118A                           293  
+0000118A                           294  
+0000118A                           295  ;BRA.bw, BSR.bw (BEQ)                                               $6
+0000118A                           296  opcode0110:
+0000118A  2200                     297      MOVE.L      D0,D1                   ;D1 has full instruction
+0000118C  0241 0F00                298      ANDI.W      #nibble2,D1             ;check bits 11,10,9,8
+00001190  143C 0008                299      MOVE.B      #right8, D2             ;store immediate value 8 in D2
+00001194  E469                     300      LSR.W       D2, D1                  ;shift to isolate next nibble (bits 11-8)
+00001196  C2FC 0006                301      MULU        #6, D1                  ;multiply by 6 to get displacement
+0000119A  47F9 000012CA            302      LEA         OP_0110_TABLE, A3       ;load op_0110_table into address register
+000011A0  4EF3 1000                303      JMP         0(A3,D1)                ;jumps to opcode table entry (A0 = OP_TABLE)
+000011A4                           304      
+000011A4                           305      ;come back and check when debugging. if this does not work then skip jump table
+000011A4                           306  
+000011A4                           307  
+000011A4                           308  ;MOVEQ                                                            $7
+000011A4                           309  opcode0111:
+000011A4  4EF9 00001524            310      JMP         OP_MOVEQ
+000011AA                           311  
+000011AA                           312  
+000011AA                           313  
+000011AA                           314  ;DIVU (DIVS, OR)                                                    $8
+000011AA                           315  opcode1000:
+000011AA  4EF9 00001544            316      JMP         OP_DIVU
+000011B0                           317  
+000011B0                           318  
+000011B0                           319  ;SUB                                                                $9
+000011B0                           320  opcode1001:
+000011B0  4EF9 0000155E            321      JMP         OP_SUB
+000011B6                           322  
+000011B6                           323  
+000011B6                           324  ;not assigned                                                       $A
+000011B6                           325  opcode1010:
+000011B6  4EF9 00001670            326      JMP         OP_UNSUPPORTED_OPCODE
+000011BC                           327  
+000011BC                           328  
+000011BC                           329  ;CMP (EOR)                                                          $B
+000011BC                           330  opcode1011:
+000011BC  4EF9 0000157A            331      JMP         OP_CMP
+000011C2                           332  
+000011C2                           333  
+000011C2                           334  ;MULU (MULS, AND)                                                   $C
+000011C2                           335  opcode1100:
+000011C2  4EF9 00001596            336      JMP         OP_MULU
+000011C8                           337  
+000011C8                           338  
+000011C8                           339  ;ADD, ADDA                                                          $D
+000011C8                           340  opcode1101:
+000011C8                           341      ;ADD and ADDA differ on bits 6,7... ADD will never be 11 for bits 6,7... use as check
+000011C8  4241                     342      CLR         D1
+000011CA  4242                     343      CLR         D2
+000011CC  2200                     344      MOVE.L      D0,D1
+000011CE  0241 00F0                345      ANDI.W      #nibble3, D1
+000011D2  143C 0006                346      MOVE.B      #right6, D2
+000011D6  E469                     347      LSR.W       D2,D1
+000011D8                           348      
+000011D8                           349      ;at this point we have our bits of interest in bits 1,0
+000011D8                           350      
+000011D8  B27C 0003                351      CMP         #3,D1                              ;check if bits == 11
+000011DC  6700 03EE                352      BEQ         OP_ADDA                             ;if yes, branch ADDA
+000011E0  6000 03CE                353      BRA         OP_ADD                              ;else branch ADD
+000011E4                           354  
+000011E4                           355  
+000011E4                           356  
+000011E4                           357  ;ASL, ASR (LSL, LSR, ROL, ROR)                                      $E
+000011E4                           358  opcode1110:
+000011E4  4241                     359      CLR D1
+000011E6  4242                     360      CLR D2
+000011E8  2200                     361      MOVE.L      D0, D1
+000011EA  0241 0F00                362      ANDI.W      #nibble2, D1
+000011EE  143C 0008                363      MOVE.B      #right8, D2
+000011F2  E469                     364      LSR.W       D2, D1                              ;D1 has 0003 or 0004
+000011F4  0241 0001                365      ANDI.W      #0001,D1                           ;isolate single bit
+000011F8                           366      
+000011F8                           367      ;at this point we have our single bit of interest in bit 0
+000011F8                           368      
+000011F8  B27C 0000                369      CMP         #0,D1                           ;check if bit == 0
+000011FC  6700 040A                370      BEQ         OP_ASR                          ;if yes, branch to ASR
+00001200  6000 03EA                371      BRA         OP_ASL                          ;else, branch to ASL
+00001204                           372  
+00001204                           373  
+00001204                           374  ;not assigned                                                       $F
+00001204                           375  opcode1111:
+00001204  4EF9 00001670            376      JMP         OP_UNSUPPORTED_OPCODE
+0000120A                           377  
+0000120A                           378  
+0000120A                           379  ;******************************** OP_XXX_TABLES ************************************
+0000120A                           380  ;once in OP_XXX_TABLE , we will use these entries to jump to specific op code to put into buffer
+0000120A                           381  
+0000120A                           382  OP_0000_TABLE:
+0000120A  4EF9 0000132A            383      jmp OP_ORI                                      ;0  
+00001210  4EF9 00001670            384      jmp OP_UNSUPPORTED_OPCODE                       ;1
+00001216  4EF9 00001348            385      jmp OP_ANDI                                     ;2
+0000121C  4EF9 00001670            386      jmp OP_UNSUPPORTED_OPCODE                       ;3
+00001222  4EF9 0000136A            387      jmp OP_SUBI                                     ;4
+00001228  4EF9 00001670            388      jmp OP_UNSUPPORTED_OPCODE                       ;5
+0000122E  4EF9 0000138C            389      jmp OP_ADDI                                     ;6
+00001234  4EF9 00001670            390      jmp OP_UNSUPPORTED_OPCODE                       ;7
+0000123A  4EF9 00001670            391      jmp OP_UNSUPPORTED_OPCODE                       ;8
+00001240  4EF9 00001670            392      jmp OP_UNSUPPORTED_OPCODE                       ;9
+00001246  4EF9 000013AE            393      jmp OP_EORI                                     ;10
+0000124C  4EF9 00001670            394      jmp OP_UNSUPPORTED_OPCODE                       ;11
+00001252  4EF9 000013D0            395      jmp OP_CMPI                                     ;12
+00001258  4EF9 00001670            396      jmp OP_UNSUPPORTED_OPCODE                       ;13
+0000125E  4EF9 00001670            397      jmp OP_UNSUPPORTED_OPCODE                       ;14
+00001264  4EF9 00001670            398      jmp OP_UNSUPPORTED_OPCODE                       ;15
+0000126A                           399  
+0000126A                           400  ;OP_0001_TABLE:
+0000126A                           401  ;    jmp OP_MOVEB
+0000126A                           402  
+0000126A                           403  
+0000126A                           404  ;OP_0010_TABLE:
+0000126A                           405  ;   jmp OP_MOVEAL
+0000126A                           406  ;   jmp OP_MOVEL
+0000126A                           407  
+0000126A                           408  
+0000126A                           409  ;OP_0011_TABLE:
+0000126A                           410  
+0000126A                           411  
+0000126A                           412  
+0000126A                           413  ;NOP, MOVEM, LEA (CLR, NOT, EXT, TRAP, STOP, RTE, RTS, JSR, JMP     $4
+0000126A                           414  ;NOP    1110
+0000126A                           415  ;MOVEM  1D00
+0000126A                           416  ;LEA    AN1
+0000126A                           417  OP_0100_TABLE:
+0000126A  4EF9 00001670            418      jmp OP_UNSUPPORTED_OPCODE                           ;0  
+00001270  4EF9 000014BE            419      jmp OP_LEA                                          ;1      (address 0001)
+00001276  4EF9 00001670            420      jmp OP_UNSUPPORTED_OPCODE                           ;2
+0000127C  4EF9 000014BE            421      jmp OP_LEA                                          ;3      (address 0011)
+00001282  4EF9 00001670            422      jmp OP_UNSUPPORTED_OPCODE                           ;4 
+00001288  4EF9 000014BE            423      jmp OP_LEA                                          ;5      (address 0101)
+0000128E  4EF9 00001670            424      jmp OP_UNSUPPORTED_OPCODE                           ;6 
+00001294  4EF9 000014BE            425      jmp OP_LEA                                          ;7      (address 0111) 
+0000129A  4EF9 00001624            426      jmp OP_MOVEM_R2M                                    ;8 
+000012A0  4EF9 000014BE            427      jmp OP_LEA                                          ;9      (address 1001) 
+000012A6  4EF9 00001670            428      jmp OP_UNSUPPORTED_OPCODE                           ;10 
+000012AC  4EF9 000014BE            429      jmp OP_LEA                                          ;11     (address 1011) 
+000012B2  4EF9 0000164A            430      jmp OP_MOVEM_M2R                                    ;12 
+000012B8  4EF9 000014BE            431      jmp OP_LEA                                          ;13     (address 1101)
+000012BE  4EF9 000014AE            432      jmp OP_NOP                                          ;14
+000012C4  4EF9 000014BE            433      jmp OP_LEA                                          ;15     (address 1111)
+000012CA                           434  
+000012CA                           435  
+000012CA                           436  ;OP_0101_TABLE:
+000012CA                           437  
+000012CA                           438  
+000012CA                           439  
+000012CA                           440  ;BRA nibble 2 = 0000 (0) , BSR nibble 2 = 0001 (1)
+000012CA                           441  OP_0110_TABLE:
+000012CA  4EF9 000014F8            442      jmp OP_BRA                                          ;0
+000012D0  4EF9 0000150E            443      jmp OP_BSR                                          ;1
+000012D6  4EF9 00001670            444      jmp OP_UNSUPPORTED_OPCODE                           ;2
+000012DC  4EF9 00001670            445      jmp OP_UNSUPPORTED_OPCODE                           ;3
+000012E2  4EF9 00001670            446      jmp OP_UNSUPPORTED_OPCODE                           ;4
+000012E8  4EF9 00001670            447      jmp OP_UNSUPPORTED_OPCODE                           ;5
+000012EE  4EF9 00001670            448      jmp OP_UNSUPPORTED_OPCODE                           ;6
+000012F4  4EF9 00001670            449      jmp OP_UNSUPPORTED_OPCODE                           ;7
+000012FA  4EF9 00001670            450      jmp OP_UNSUPPORTED_OPCODE                           ;8
+00001300  4EF9 00001670            451      jmp OP_UNSUPPORTED_OPCODE                           ;9
+00001306  4EF9 00001670            452      jmp OP_UNSUPPORTED_OPCODE                           ;10
+0000130C  4EF9 00001670            453      jmp OP_UNSUPPORTED_OPCODE                           ;11
+00001312  4EF9 00001670            454      jmp OP_UNSUPPORTED_OPCODE                           ;12
+00001318  4EF9 00001670            455      jmp OP_UNSUPPORTED_OPCODE                           ;13
+0000131E  4EF9 00001670            456      jmp OP_UNSUPPORTED_OPCODE                           ;14
+00001324  4EF9 00001670            457      jmp OP_UNSUPPORTED_OPCODE                           ;15
 0000132A                           458  
 0000132A                           459  
-0000132A                           460  
-0000132A                           461  OP_1100_TABLE:
+0000132A                           460  ;OP_0111_TABLE:
+0000132A                           461  
 0000132A                           462  
 0000132A                           463  
-0000132A                           464  
-0000132A                           465  OP_1101_TABLE:
+0000132A                           464  ;OP_1000_TABLE:
+0000132A                           465  
 0000132A                           466  
 0000132A                           467  
-0000132A                           468  
-0000132A                           469  OP_1110_TABLE:
+0000132A                           468  ;OP_1001_TABLE:
+0000132A                           469  
 0000132A                           470  
 0000132A                           471  
-0000132A                           472  
-0000132A                           473  OP_1111_TABLE:
+0000132A                           472  OP_1010_TABLE:
+0000132A                           473  
 0000132A                           474  
 0000132A                           475  
-0000132A                           476  ;******************************** OP_INSTRUCTION_XXXX******************************************
-0000132A                           477  ;this is where we are putting ascii text into buffer
+0000132A                           476  OP_1011_TABLE:
+0000132A                           477  
 0000132A                           478  
 0000132A                           479  
-0000132A                           480  OP_ORI:
-0000132A  14FC 004F                481      MOVE.B  #'O', (A2)+
-0000132E  14FC 0052                482      MOVE.B  #'R', (A2)+
-00001332  14FC 0049                483      MOVE.B  #'I', (A2)+
-00001336                           484      
-00001336                           485      ;call OP_CHECK_SIZE to append a .b/.w/.l
-00001336  4EB9 00001650            486      JSR     OP_CHECK_SIZE
-0000133C                           487      
-0000133C                           488      ;SOMETHING EXTRA FOR IMMEDIATE VALUE????
-0000133C                           489  
-0000133C  4EB9 0000177A            490      JSR     EA_START
-00001342  4EF8 109A                491      JMP     OP_FINISH
-00001346                           492  
-00001346                           493  OP_ANDI:  ;(optional)
-00001346  14FC 0041                494      MOVE.B  #'A', (A2)+
-0000134A  14FC 004E                495      MOVE.B  #'N', (A2)+
-0000134E  14FC 0044                496      MOVE.B  #'D', (A2)+
-00001352  14FC 0049                497      MOVE.B  #'I', (A2)+
-00001356                           498      
-00001356                           499      ;call OP_CHECK_SIZE to append a .b/.w/.l
-00001356  4EB9 00001650            500      JSR     OP_CHECK_SIZE
-0000135C                           501      
-0000135C                           502      ;SOMETHING EXTRA FOR IMMEDIATE VALUE????
-0000135C                           503  
-0000135C  4EB9 0000177A            504      JSR     EA_START
-00001362  4EF8 109A                505      JMP     OP_FINISH
-00001366                           506  
-00001366                           507  
-00001366                           508  OP_SUBI:  ;(optional)
-00001366  14FC 0053                509      MOVE.B  #'S', (A2)+
-0000136A  14FC 0055                510      MOVE.B  #'U', (A2)+
-0000136E  14FC 0042                511      MOVE.B  #'B', (A2)+
-00001372  14FC 0049                512      MOVE.B  #'I', (A2)+
-00001376                           513      
-00001376                           514      ;call OP_CHECK_SIZE to append a .b/.w/.l
-00001376  4EB9 00001650            515      JSR     OP_CHECK_SIZE
-0000137C                           516      
-0000137C                           517      ;SOMETHING EXTRA FOR IMMEDIATE VALUE????
-0000137C                           518  
-0000137C  4EB9 0000177A            519      JSR     EA_START
-00001382  4EF8 109A                520      JMP     OP_FINISH
-00001386                           521  
-00001386                           522  
-00001386                           523  OP_ADDI:  ;(optional)
-00001386  14FC 0041                524      MOVE.B  #'A', (A2)+
-0000138A  14FC 0044                525      MOVE.B  #'D', (A2)+
-0000138E  14FC 0044                526      MOVE.B  #'D', (A2)+
-00001392  14FC 0049                527      MOVE.B  #'I', (A2)+
-00001396                           528      
-00001396                           529      ;call OP_CHECK_SIZE to append a .b/.w/.l
-00001396  4EB9 00001650            530      JSR     OP_CHECK_SIZE
-0000139C                           531     
-0000139C                           532      ;SOMETHING EXTRA FOR IMMEDIATE VALUE????
-0000139C                           533  
-0000139C  4EB9 0000177A            534      JSR     EA_START
-000013A2  4EF8 109A                535      JMP     OP_FINISH
-000013A6                           536  
-000013A6                           537  
-000013A6                           538  OP_EORI:  ;(optional)
-000013A6  14FC 0045                539      MOVE.B  #'E', (A2)+
-000013AA  14FC 004F                540      MOVE.B  #'O', (A2)+
-000013AE  14FC 0052                541      MOVE.B  #'R', (A2)+
-000013B2  14FC 0049                542      MOVE.B  #'I', (A2)+
-000013B6                           543      
-000013B6                           544      ;call OP_CHECK_SIZE to append a .b/.w/.l
-000013B6  4EB9 00001650            545      JSR     OP_CHECK_SIZE
-000013BC                           546      
-000013BC                           547      ;SOMETHING EXTRA FOR IMMEDIATE VALUE????
-000013BC                           548      
-000013BC  4EB9 0000177A            549      JSR     EA_START
-000013C2  4EF8 109A                550      JMP     OP_FINISH
-000013C6                           551  
-000013C6                           552  
-000013C6                           553  OP_CMPI:  ;(optional)
-000013C6  14FC 0043                554      MOVE.B  #'C', (A2)+
-000013CA  14FC 004D                555      MOVE.B  #'M', (A2)+
-000013CE  14FC 0050                556      MOVE.B  #'P', (A2)+
-000013D2  14FC 0049                557      MOVE.B  #'I', (A2)+
-000013D6                           558      
-000013D6                           559      
-000013D6                           560      ;call OP_CHECK_SIZE to append a .b/.w/.l
-000013D6  4EB9 00001650            561      JSR     OP_CHECK_SIZE
-000013DC                           562  
-000013DC                           563      ;SOMETHING EXTRA FOR IMMEDIATE VALUE????
-000013DC                           564  
-000013DC  4EB9 0000177A            565      JSR     EA_START
-000013E2  4EF8 109A                566      JMP     OP_FINISH
-000013E6                           567  
-000013E6                           568  
-000013E6                           569  OP_MOVEB:
-000013E6  14FC 004D                570      MOVE.B  #'M', (A2)+
-000013EA  14FC 004F                571      MOVE.B  #'O', (A2)+
-000013EE  14FC 0056                572      MOVE.B  #'V', (A2)+
-000013F2  14FC 0045                573      MOVE.B  #'E', (A2)+
-000013F6  14FC 002E                574      MOVE.B  #'.', (A2)+
-000013FA  14FC 0042                575      MOVE.B  #'B', (A2)+
-000013FE                           576      
-000013FE  4EB9 0000177A            577      JSR     EA_START
-00001404  4EF8 109A                578      JMP     OP_FINISH
-00001408                           579  
-00001408                           580  OP_MOVEAL:
-00001408  14FC 004D                581      MOVE.B  #'M', (A2)+
-0000140C  14FC 004F                582      MOVE.B  #'O', (A2)+
-00001410  14FC 0056                583      MOVE.B  #'V', (A2)+
-00001414  14FC 0045                584      MOVE.B  #'E', (A2)+
-00001418  14FC 0041                585      MOVE.B  #'A', (A2)+
-0000141C  14FC 002E                586      MOVE.B  #'.', (A2)+
-00001420  14FC 004C                587      MOVE.B  #'L', (A2)+
-00001424                           588      
-00001424  4EB9 0000177A            589      JSR     EA_START
-0000142A  4EF8 109A                590      JMP     OP_FINISH
-0000142E                           591  
-0000142E                           592  OP_MOVEL:
-0000142E  14FC 004D                593      MOVE.B  #'M', (A2)+
-00001432  14FC 004F                594      MOVE.B  #'O', (A2)+
-00001436  14FC 0056                595      MOVE.B  #'V', (A2)+
-0000143A  14FC 0045                596      MOVE.B  #'E', (A2)+
-0000143E  14FC 002E                597      MOVE.B  #'.', (A2)+
-00001442  14FC 004C                598      MOVE.B  #'L', (A2)+
-00001446                           599      
-00001446  4EB9 0000177A            600      JSR     EA_START
-0000144C  4EF8 109A                601      JMP     OP_FINISH
-00001450                           602  
-00001450                           603  
-00001450                           604  OP_MOVEAW:
-00001450  14FC 004D                605      MOVE.B  #'M', (A2)+
-00001454  14FC 004F                606      MOVE.B  #'O', (A2)+
-00001458  14FC 0056                607      MOVE.B  #'V', (A2)+
-0000145C  14FC 0045                608      MOVE.B  #'E', (A2)+
-00001460  14FC 0041                609      MOVE.B  #'A', (A2)+
-00001464  14FC 002E                610      MOVE.B  #'.', (A2)+
-00001468  14FC 0057                611      MOVE.B  #'W', (A2)+
-0000146C                           612      
-0000146C  4EB9 0000177A            613      JSR     EA_START
-00001472  4EF8 109A                614      JMP     OP_FINISH
-00001476                           615  
-00001476                           616  
-00001476                           617  OP_MOVEW:
-00001476  14FC 004D                618      MOVE.B  #'M', (A2)+
-0000147A  14FC 004F                619      MOVE.B  #'O', (A2)+
-0000147E  14FC 0056                620      MOVE.B  #'V', (A2)+
-00001482  14FC 0045                621      MOVE.B  #'E', (A2)+
-00001486  14FC 002E                622      MOVE.B  #'.', (A2)+
-0000148A  14FC 0057                623      MOVE.B  #'W', (A2)+
-0000148E                           624      
-0000148E  4EB9 0000177A            625      JSR     EA_START
-00001494  4EF8 109A                626      JMP     OP_FINISH
-00001498                           627  
-00001498                           628  
-00001498                           629  OP_NOP:
-00001498  14FC 004E                630      MOVE.B  #'N', (A2)+
-0000149C  14FC 004F                631      MOVE.B  #'O', (A2)+
-000014A0  14FC 0050                632      MOVE.B  #'P', (A2)+
-000014A4                           633      
-000014A4  4EF8 109A                634      JMP     OP_FINISH
-000014A8                           635  
-000014A8                           636  
-000014A8                           637  OP_MOVEM:
-000014A8                           638  
-000014A8                           639  
-000014A8                           640  
-000014A8                           641  OP_LEA:
-000014A8  14FC 004C                642      MOVE.B  #'L', (A2)+
-000014AC  14FC 0045                643      MOVE.B  #'E', (A2)+
-000014B0  14FC 0041                644      MOVE.B  #'A', (A2)+
-000014B4                           645  
-000014B4  4EB9 0000177A            646      JSR     EA_START
-000014BA  4EF8 109A                647      JMP     OP_FINISH
-000014BE                           648  
-000014BE                           649  OP_CLR:  ;(optional)
-000014BE                           650  
-000014BE                           651  
-000014BE                           652  
-000014BE                           653  OP_NOT:  ;(optional)
-000014BE                           654  
-000014BE                           655  
-000014BE                           656  
-000014BE                           657  OP_EXT:  ;(optional)
-000014BE                           658  
-000014BE                           659  
-000014BE                           660  
-000014BE                           661  OP_TRAP:  ;(optional)
-000014BE                           662  
-000014BE                           663  
-000014BE                           664   
-000014BE                           665  OP_STOP:  ;(optional)
-000014BE                           666  
-000014BE                           667  
+0000132A                           480  OP_1100_TABLE:
+0000132A                           481  
+0000132A                           482  
+0000132A                           483  
+0000132A                           484  OP_1101_TABLE:
+0000132A                           485  
+0000132A                           486  
+0000132A                           487  
+0000132A                           488  OP_1110_TABLE:
+0000132A                           489  
+0000132A                           490  
+0000132A                           491  
+0000132A                           492  OP_1111_TABLE:
+0000132A                           493  
+0000132A                           494  
+0000132A                           495  ;******************************** OP_INSTRUCTION_XXXX******************************************
+0000132A                           496  ;this is where we are putting ascii text into buffer
+0000132A                           497  
+0000132A                           498  
+0000132A                           499  OP_ORI:
+0000132A  14FC 004F                500      MOVE.B  #'O', (A2)+
+0000132E  14FC 0052                501      MOVE.B  #'R', (A2)+
+00001332  14FC 0049                502      MOVE.B  #'I', (A2)+
+00001336                           503      
+00001336                           504      ;call OP_CHECK_SIZE to append a .b/.w/.l
+00001336  4EB9 00001670            505      JSR     OP_CHECK_SIZE
+0000133C                           506      
+0000133C  7200                     507      MOVE.L  #ea_type_immediate, D1              ;preps for EA_START and puts 0 into D1
+0000133E                           508  
+0000133E  4EB9 0000179A            509      JSR     EA_START
+00001344  4EF8 109A                510      JMP     OP_FINISH
+00001348                           511  
+00001348                           512  OP_ANDI:  ;(optional)
+00001348  14FC 0041                513      MOVE.B  #'A', (A2)+
+0000134C  14FC 004E                514      MOVE.B  #'N', (A2)+
+00001350  14FC 0044                515      MOVE.B  #'D', (A2)+
+00001354  14FC 0049                516      MOVE.B  #'I', (A2)+
+00001358                           517      
+00001358                           518      ;call OP_CHECK_SIZE to append a .b/.w/.l
+00001358  4EB9 00001670            519      JSR     OP_CHECK_SIZE
+0000135E                           520      
+0000135E  7200                     521      MOVE.L  #ea_type_immediate, D1              ;preps for EA_START and puts 0 into D1
+00001360                           522  
+00001360  4EB9 0000179A            523      JSR     EA_START
+00001366  4EF8 109A                524      JMP     OP_FINISH
+0000136A                           525  
+0000136A                           526  
+0000136A                           527  OP_SUBI:  ;(optional)
+0000136A  14FC 0053                528      MOVE.B  #'S', (A2)+
+0000136E  14FC 0055                529      MOVE.B  #'U', (A2)+
+00001372  14FC 0042                530      MOVE.B  #'B', (A2)+
+00001376  14FC 0049                531      MOVE.B  #'I', (A2)+
+0000137A                           532      
+0000137A                           533      ;call OP_CHECK_SIZE to append a .b/.w/.l
+0000137A  4EB9 00001670            534      JSR     OP_CHECK_SIZE
+00001380                           535      
+00001380  7200                     536      MOVE.L  #ea_type_immediate, D1              ;preps for EA_START and puts 0 into D1
+00001382                           537  
+00001382  4EB9 0000179A            538      JSR     EA_START
+00001388  4EF8 109A                539      JMP     OP_FINISH
+0000138C                           540  
+0000138C                           541  
+0000138C                           542  OP_ADDI:  ;(optional)
+0000138C  14FC 0041                543      MOVE.B  #'A', (A2)+
+00001390  14FC 0044                544      MOVE.B  #'D', (A2)+
+00001394  14FC 0044                545      MOVE.B  #'D', (A2)+
+00001398  14FC 0049                546      MOVE.B  #'I', (A2)+
+0000139C                           547      
+0000139C                           548      ;call OP_CHECK_SIZE to append a .b/.w/.l
+0000139C  4EB9 00001670            549      JSR     OP_CHECK_SIZE
+000013A2                           550     
+000013A2  7200                     551      MOVE.L  #ea_type_immediate, D1              ;preps for EA_START and puts 0 into D1
+000013A4                           552  
+000013A4  4EB9 0000179A            553      JSR     EA_START
+000013AA  4EF8 109A                554      JMP     OP_FINISH
+000013AE                           555  
+000013AE                           556  
+000013AE                           557  OP_EORI:  ;(optional)
+000013AE  14FC 0045                558      MOVE.B  #'E', (A2)+
+000013B2  14FC 004F                559      MOVE.B  #'O', (A2)+
+000013B6  14FC 0052                560      MOVE.B  #'R', (A2)+
+000013BA  14FC 0049                561      MOVE.B  #'I', (A2)+
+000013BE                           562      
+000013BE                           563      ;call OP_CHECK_SIZE to append a .b/.w/.l
+000013BE  4EB9 00001670            564      JSR     OP_CHECK_SIZE
+000013C4                           565      
+000013C4  7200                     566      MOVE.L  #ea_type_immediate, D1              ;preps for EA_START and puts 0 into D1
+000013C6                           567      
+000013C6  4EB9 0000179A            568      JSR     EA_START
+000013CC  4EF8 109A                569      JMP     OP_FINISH
+000013D0                           570  
+000013D0                           571  
+000013D0                           572  OP_CMPI:  ;(optional)
+000013D0  14FC 0043                573      MOVE.B  #'C', (A2)+
+000013D4  14FC 004D                574      MOVE.B  #'M', (A2)+
+000013D8  14FC 0050                575      MOVE.B  #'P', (A2)+
+000013DC  14FC 0049                576      MOVE.B  #'I', (A2)+
+000013E0                           577      
+000013E0                           578      
+000013E0                           579      ;call OP_CHECK_SIZE to append a .b/.w/.l
+000013E0  4EB9 00001670            580      JSR     OP_CHECK_SIZE
+000013E6                           581  
+000013E6  7200                     582      MOVE.L  #ea_type_immediate, D1              ;preps for EA_START and puts 0 into D1
+000013E8                           583  
+000013E8  4EB9 0000179A            584      JSR     EA_START
+000013EE  4EF8 109A                585      JMP     OP_FINISH
+000013F2                           586  
+000013F2                           587  
+000013F2                           588  OP_MOVEB:
+000013F2  14FC 004D                589      MOVE.B  #'M', (A2)+
+000013F6  14FC 004F                590      MOVE.B  #'O', (A2)+
+000013FA  14FC 0056                591      MOVE.B  #'V', (A2)+
+000013FE  14FC 0045                592      MOVE.B  #'E', (A2)+
+00001402  14FC 002E                593      MOVE.B  #'.', (A2)+
+00001406  14FC 0042                594      MOVE.B  #'B', (A2)+
+0000140A                           595      
+0000140A  7201                     596      MOVE.L  #ea_type_move, D1                   ;preps for EA_START and puts 1 into D1
+0000140C                           597      
+0000140C  4EB9 0000179A            598      JSR     EA_START
+00001412  4EF8 109A                599      JMP     OP_FINISH
+00001416                           600  
+00001416                           601  OP_MOVEAL:
+00001416  14FC 004D                602      MOVE.B  #'M', (A2)+
+0000141A  14FC 004F                603      MOVE.B  #'O', (A2)+
+0000141E  14FC 0056                604      MOVE.B  #'V', (A2)+
+00001422  14FC 0045                605      MOVE.B  #'E', (A2)+
+00001426  14FC 0041                606      MOVE.B  #'A', (A2)+
+0000142A  14FC 002E                607      MOVE.B  #'.', (A2)+
+0000142E  14FC 004C                608      MOVE.B  #'L', (A2)+
+00001432                           609      
+00001432  7202                     610      MOVE.L  #ea_type_movea, D1                   ;preps for EA_START and puts 2 into D1
+00001434                           611      
+00001434  4EB9 0000179A            612      JSR     EA_START
+0000143A  4EF8 109A                613      JMP     OP_FINISH
+0000143E                           614  
+0000143E                           615  OP_MOVEL:
+0000143E  14FC 004D                616      MOVE.B  #'M', (A2)+
+00001442  14FC 004F                617      MOVE.B  #'O', (A2)+
+00001446  14FC 0056                618      MOVE.B  #'V', (A2)+
+0000144A  14FC 0045                619      MOVE.B  #'E', (A2)+
+0000144E  14FC 002E                620      MOVE.B  #'.', (A2)+
+00001452  14FC 004C                621      MOVE.B  #'L', (A2)+
+00001456                           622      
+00001456  7201                     623      MOVE.L  #ea_type_move, D1                   ;preps for EA_START and puts 1 into D1
+00001458                           624      
+00001458  4EB9 0000179A            625      JSR     EA_START
+0000145E  4EF8 109A                626      JMP     OP_FINISH
+00001462                           627  
+00001462                           628  
+00001462                           629  OP_MOVEAW:
+00001462  14FC 004D                630      MOVE.B  #'M', (A2)+
+00001466  14FC 004F                631      MOVE.B  #'O', (A2)+
+0000146A  14FC 0056                632      MOVE.B  #'V', (A2)+
+0000146E  14FC 0045                633      MOVE.B  #'E', (A2)+
+00001472  14FC 0041                634      MOVE.B  #'A', (A2)+
+00001476  14FC 002E                635      MOVE.B  #'.', (A2)+
+0000147A  14FC 0057                636      MOVE.B  #'W', (A2)+
+0000147E                           637      
+0000147E  7202                     638      MOVE.L  #ea_type_movea, D1                   ;preps for EA_START and puts 2 into D1
+00001480                           639      
+00001480  4EB9 0000179A            640      JSR     EA_START
+00001486  4EF8 109A                641      JMP     OP_FINISH
+0000148A                           642  
+0000148A                           643  
+0000148A                           644  OP_MOVEW:
+0000148A  14FC 004D                645      MOVE.B  #'M', (A2)+
+0000148E  14FC 004F                646      MOVE.B  #'O', (A2)+
+00001492  14FC 0056                647      MOVE.B  #'V', (A2)+
+00001496  14FC 0045                648      MOVE.B  #'E', (A2)+
+0000149A  14FC 002E                649      MOVE.B  #'.', (A2)+
+0000149E  14FC 0057                650      MOVE.B  #'W', (A2)+
+000014A2                           651      
+000014A2  7201                     652      MOVE.L  #ea_type_move, D1                   ;preps for EA_START and puts 1 into D1
+000014A4                           653      
+000014A4  4EB9 0000179A            654      JSR     EA_START
+000014AA  4EF8 109A                655      JMP     OP_FINISH
+000014AE                           656  
+000014AE                           657  
+000014AE                           658  OP_NOP:
+000014AE  14FC 004E                659      MOVE.B  #'N', (A2)+
+000014B2  14FC 004F                660      MOVE.B  #'O', (A2)+
+000014B6  14FC 0050                661      MOVE.B  #'P', (A2)+
+000014BA                           662      
+000014BA  4EF8 109A                663      JMP     OP_FINISH
+000014BE                           664  
+000014BE                           665  
+000014BE                           666  OP_MOVEM:
+000014BE                           667      ;see movemd2r or movemr2d... see below at bottom
 000014BE                           668  
-000014BE                           669  OP_RTE:  ;(optional)
-000014BE                           670  
-000014BE                           671  
-000014BE                           672  
-000014BE                           673  OP_RTS:  ;(optional)
-000014BE                           674  
-000014BE                           675  
-000014BE                           676  
-000014BE                           677  OP_JSR:  ;(optional)
-000014BE                           678  
-000014BE                           679  
-000014BE                           680  
-000014BE                           681  OP_JMP:  ;(optional)
-000014BE                           682  
-000014BE                           683  
-000014BE                           684  
-000014BE                           685  OP_ADDQ:
-000014BE  14FC 0041                686      MOVE.B  #'A', (A2)+
-000014C2  14FC 0044                687      MOVE.B  #'D', (A2)+
-000014C6  14FC 0044                688      MOVE.B  #'D', (A2)+
-000014CA  14FC 0051                689      MOVE.B  #'Q', (A2)+
-000014CE                           690      
-000014CE                           691      ;call OP_CHECK_SIZE to append a .b/.w/.l
-000014CE  4EB9 00001650            692      JSR     OP_CHECK_SIZE
-000014D4                           693  
-000014D4  4EB9 0000177A            694      JSR     EA_START
-000014DA  4EF8 109A                695      JMP     OP_FINISH
-000014DE                           696  
-000014DE                           697  OP_SUBQ:  ;(optional)
-000014DE                           698  
-000014DE                           699  
-000014DE                           700  
-000014DE                           701  OP_BRA:                                     ;???? DO WE DEFINE SIZE HERE OR AFTER????
-000014DE  14FC 0042                702      MOVE.B  #'B', (A2)+
-000014E2  14FC 0052                703      MOVE.B  #'R', (A2)+
-000014E6  14FC 0041                704      MOVE.B  #'A', (A2)+
-000014EA                           705  
-000014EA  4EB9 0000177A            706      JSR     EA_START                        ;? DO WE HAVE EA?
-000014F0  4EF8 109A                707      JMP     OP_FINISH
-000014F4                           708  
-000014F4                           709  
-000014F4                           710  OP_BSR:
-000014F4  14FC 0042                711      MOVE.B  #'B', (A2)+
-000014F8  14FC 0053                712      MOVE.B  #'S', (A2)+
-000014FC  14FC 0052                713      MOVE.B  #'R', (A2)+
-00001500                           714  
-00001500  4EB9 0000177A            715      JSR     EA_START                        ;DO WE HAVE EA?
-00001506  4EF8 109A                716      JMP     OP_FINISH
-0000150A                           717  
-0000150A                           718  
-0000150A                           719  OP_BEQ:
-0000150A                           720  
-0000150A                           721  
-0000150A                           722  
-0000150A                           723  OP_MOVEQ:
-0000150A  14FC 004D                724      MOVE.B  #'M', (A2)+
-0000150E  14FC 004F                725      MOVE.B  #'O', (A2)+
-00001512  14FC 0056                726      MOVE.B  #'V', (A2)+
-00001516  14FC 0045                727      MOVE.B  #'E', (A2)+
-0000151A  14FC 0051                728      MOVE.B  #'Q', (A2)+
-0000151E                           729      
-0000151E                           730      ;DO WE NEED A .L ?
-0000151E                           731      
-0000151E  4EB9 0000177A            732      JSR     EA_START
-00001524  4EF8 109A                733      JMP     OP_FINISH
-00001528                           734  
-00001528                           735  
-00001528                           736  OP_DIVU:
-00001528  14FC 0044                737      MOVE.B  #'D', (A2)+
-0000152C  14FC 0049                738      MOVE.B  #'I', (A2)+
-00001530  14FC 0056                739      MOVE.B  #'V', (A2)+
-00001534  14FC 0055                740      MOVE.B  #'U', (A2)+
-00001538                           741      ;MOVE.B  #'.', (A2)+
-00001538                           742      ;MOVE.B  #'W', (A2)+  
-00001538                           743    
-00001538  4EB9 0000177A            744      JSR     EA_START
-0000153E  4EF8 109A                745      JMP     OP_FINISH    
-00001542                           746  
-00001542                           747  
-00001542                           748  OP_DIVS  ;(optional)
-00001542                           749  
-00001542                           750  
-00001542                           751  
-00001542                           752  OP_OR  ;(optional)
-00001542                           753  
-00001542                           754  
-00001542                           755  
-00001542                           756  OP_SUB:
-00001542  14FC 0053                757      MOVE.B  #'S', (A2)+
-00001546  14FC 0055                758      MOVE.B  #'U', (A2)+
-0000154A  14FC 0042                759      MOVE.B  #'B', (A2)+
-0000154E                           760  
-0000154E                           761      ;to determine size... bits 7 and 6? (.b, .w, .l)
-0000154E                           762      ;D0 HAS COMPLETE OP CODE INSTRUCTION (XXXX)
-0000154E                           763      
-0000154E                           764      ;call OP_CHECK_SIZE to append a .b/.w/.l
-0000154E  4EB9 00001650            765      JSR     OP_CHECK_SIZE
-00001554                           766      
-00001554                           767      ;at this point it will return with SUB.X and go to EA_START
-00001554  4EB9 0000177A            768      JSR     EA_START
-0000155A  4EF8 109A                769      JMP     OP_FINISH    
-0000155E                           770  
-0000155E                           771  
-0000155E                           772  OP_CMP:
-0000155E  14FC 0043                773      MOVE.B  #'C', (A2)+
-00001562  14FC 004D                774      MOVE.B  #'M', (A2)+
-00001566  14FC 0050                775      MOVE.B  #'P', (A2)+
-0000156A                           776  
-0000156A                           777      ;call OP_CHECK_SIZE to append a .b/.w/.l    
-0000156A  4EB9 00001650            778      JSR     OP_CHECK_SIZE
-00001570                           779      
-00001570                           780      ;at this point it will return with SUB.X and go to EA_START
-00001570  4EB9 0000177A            781      JSR     EA_START
-00001576  4EF8 109A                782      JMP     OP_FINISH    
-0000157A                           783      
-0000157A                           784  
-0000157A                           785  
-0000157A                           786  OP_EOR:  ;(optional)
-0000157A                           787  
-0000157A                           788  
-0000157A                           789  
-0000157A                           790  OP_MULU:
-0000157A  14FC 004D                791      MOVE.B  #'M', (A2)+
-0000157E  14FC 0055                792      MOVE.B  #'U', (A2)+
-00001582  14FC 004C                793      MOVE.B  #'L', (A2)+
-00001586  14FC 0055                794      MOVE.B  #'U', (A2)+
-0000158A                           795  
-0000158A  4EB9 0000177A            796      JSR     EA_START
-00001590  4EF8 109A                797      JMP     OP_FINISH    
-00001594                           798  
-00001594                           799  OP_MULS:  ;(optional)
-00001594                           800  
-00001594                           801  
-00001594                           802  
-00001594                           803  OP_AND:  ;(optional)
-00001594                           804  
-00001594                           805  
-00001594                           806  
-00001594                           807  OP_ADD:
-00001594  14FC 0041                808      MOVE.B  #'A', (A2)+
-00001598  14FC 0044                809      MOVE.B  #'D', (A2)+
-0000159C  14FC 0044                810      MOVE.B  #'D', (A2)+
-000015A0                           811  
-000015A0                           812      ;call OP_CHECK_SIZE to append a .b/.w/.l
-000015A0  4EB9 00001650            813      JSR     OP_CHECK_SIZE
-000015A6                           814  
-000015A6  4EB9 0000177A            815      JSR     EA_START
-000015AC  4EF8 109A                816      JMP     OP_FINISH
-000015B0                           817  
-000015B0                           818  OP_ADDA:
-000015B0  14FC 0041                819      MOVE.B  #'A', (A2)+
-000015B4  14FC 0044                820      MOVE.B  #'D', (A2)+
-000015B8  14FC 0044                821      MOVE.B  #'D', (A2)+
-000015BC  14FC 0041                822      MOVE.B  #'A', (A2)+
-000015C0                           823  
-000015C0                           824      ;call OP_CHECK_SIZE to append a .b/.w/.l
-000015C0  4EB9 00001692            825      JSR     OP_CHECK_SIZE_ADDA
-000015C6                           826  
-000015C6  4EB9 0000177A            827      JSR     EA_START
-000015CC  4EF8 109A                828      JMP     OP_FINISH
-000015D0                           829  
-000015D0                           830  
-000015D0                           831  OP_ASL:
-000015D0  14FC 0041                832      MOVE.B  #'A', (A2)+
-000015D4  14FC 0053                833      MOVE.B  #'S', (A2)+
-000015D8  14FC 004C                834      MOVE.B  #'L', (A2)+
-000015DC                           835  
-000015DC                           836      ;call OP_CHECK_SIZE to append a .b/.w/.l
-000015DC  4EB9 00001650            837      JSR     OP_CHECK_SIZE
-000015E2                           838  
-000015E2  4EB9 0000177A            839      JSR     EA_START
-000015E8  4EF8 109A                840      JMP     OP_FINISH
-000015EC                           841  
-000015EC                           842  
-000015EC                           843  OP_ASR:
-000015EC  14FC 0041                844      MOVE.B  #'A', (A2)+
-000015F0  14FC 0053                845      MOVE.B  #'S', (A2)+
-000015F4  14FC 0052                846      MOVE.B  #'R', (A2)+
-000015F8                           847  
-000015F8                           848      ;call OP_CHECK_SIZE to append a .b/.w/.l
-000015F8  4EB9 00001650            849      JSR     OP_CHECK_SIZE
-000015FE                           850  
-000015FE  4EB9 0000177A            851      JSR     EA_START
-00001604  4EF8 109A                852      JMP     OP_FINISH
-00001608                           853  
-00001608                           854  OP_LSL:  ;(optional)
-00001608                           855  
-00001608                           856  
-00001608                           857  
-00001608                           858  
-00001608                           859  OP_LSR:  ;(optional)
-00001608                           860  
-00001608                           861  
-00001608                           862  
-00001608                           863  
-00001608                           864  OP_ROL:  ;(optional)
-00001608                           865  
-00001608                           866  
-00001608                           867  
-00001608                           868  
-00001608                           869  OP_ROR:  ;(optional)
-00001608                           870  
-00001608                           871  
-00001608                           872  
-00001608                           873  OP_MOVEM_R2M:
-00001608  14FC 004D                874      MOVE.B  #'M', (A2)+
-0000160C  14FC 004F                875      MOVE.B  #'O', (A2)+
-00001610  14FC 0056                876      MOVE.B  #'V', (A2)+
-00001614  14FC 0045                877      MOVE.B  #'E', (A2)+
-00001618  14FC 004D                878      MOVE.B  #'M', (A2)+
-0000161C                           879      
-0000161C                           880      ;call OP_CHECK_SIZE to append a .b/.w/.l
-0000161C  4EB9 00001650            881      JSR     OP_CHECK_SIZE
-00001622                           882      
-00001622  4EB9 0000177A            883      JSR     EA_START
-00001628  4EF8 109A                884      JMP     OP_FINISH
-0000162C                           885  
-0000162C                           886  
-0000162C                           887  OP_MOVEM_M2R:
-0000162C  14FC 004D                888      MOVE.B  #'M', (A2)+
-00001630  14FC 004F                889      MOVE.B  #'O', (A2)+
-00001634  14FC 0056                890      MOVE.B  #'V', (A2)+
-00001638  14FC 0045                891      MOVE.B  #'E', (A2)+
-0000163C  14FC 004D                892      MOVE.B  #'M', (A2)+
-00001640                           893      
-00001640                           894      ;call OP_CHECK_SIZE to append a .b/.w/.l
-00001640  4EB9 00001650            895      JSR     OP_CHECK_SIZE
-00001646                           896      
-00001646  4EB9 0000177A            897      JSR     EA_START
-0000164C  4EF8 109A                898      JMP     OP_FINISH
-00001650                           899  
-00001650                           900  
-00001650                           901  OP_UNSUPPORTED_OPCODE:
-00001650                           902  
-00001650                           903  
-00001650                           904  ;D0 HAS COMPLETE INSTRUCTION
-00001650                           905  OP_CHECK_SIZE:
-00001650  4241                     906      CLR     D1                                  ;CLEAR D1
-00001652  4242                     907      CLR     D2                                  ;clear D2
-00001654  2200                     908      MOVE.L  D0,D1                               ;D0 and D1 both have complete opcode
-00001656  0241 00F0                909      ANDI.W  #nibble3,D1                         ;isolate nibble 3
-0000165A  143C 0006                910      MOVE.B  #right6, D2                         ;putting immediate value 6 in D2
-0000165E  E469                     911      LSR.W   D2, D1                              ;bits 7,6 --> bits 1,0
-00001660                           912      
-00001660                           913       
-00001660  B27C 0000                914      CMP     #00,D1                              ;compare bits 1,0 to 00
-00001664  6700 000E                915      BEQ     OP_SIZE_BYTE                        ;if bits == 00, size byte
-00001668  B27C 0001                916      CMP     #01,D1                              ;compare bits to 01
-0000166C  6700 0010                917      BEQ     OP_SIZE_WORD                        ;if bits == 01, size word
-00001670  6000 0016                918      BRA     OP_SIZE_LONG                        ;else size long
-00001674                           919  
-00001674                           920  OP_SIZE_BYTE
-00001674  14FC 002E                921      MOVE.B  #'.', (A2)+
-00001678  14FC 0042                922      MOVE.B  #'B', (A2)+
-0000167C  4E75                     923      RTS
-0000167E                           924  
-0000167E                           925  OP_SIZE_WORD
-0000167E  14FC 002E                926      MOVE.B  #'.', (A2)+
-00001682  14FC 0057                927      MOVE.B  #'W', (A2)+
-00001686  4E75                     928      RTS
-00001688                           929  
-00001688                           930  
-00001688                           931  OP_SIZE_LONG
-00001688  14FC 002E                932      MOVE.B  #'.', (A2)+
-0000168C  14FC 004C                933      MOVE.B  #'L', (A2)+
-00001690  4E75                     934      RTS
-00001692                           935  
-00001692                           936  
-00001692                           937  OP_CHECK_SIZE_ADDA:
-00001692  4241                     938      CLR     D1                                  ;CLEAR D1
-00001694  4242                     939      CLR     D2                                  ;clear D2
-00001696  2200                     940      MOVE.L  D0,D1                               ;D0 and D1 both have complete opcode
-00001698  0241 0F00                941      ANDI.W  #nibble2,D1                         ;isolate nibble 2
-0000169C  143C 0008                942      MOVE.B  #right8, D2                         ;putting immediate value 8 in D2
-000016A0  E469                     943      LSR.W   D2, D1                              ;
-000016A2                           944      
-000016A2                           945      ;at this point we have our single bit in bit 0
-000016A2                           946      
-000016A2  0241 0001                947      ANDI.W  #0001,D1                            ;isolate bit 0
-000016A6  B27C 0000                948      CMP     #0,D1                               ;check if bit == 0
-000016AA  67D2                     949      BEQ     OP_SIZE_WORD                        ;if yes, size = word
-000016AC  60DA                     950      BRA     OP_SIZE_LONG                        ;else, size = long
-000016AE                           951  
-000016AE                           952   
-000016AE                           953  
-000016AE                           954  ;******************************** ATOI *********************************************
-000016AE                           955  ATOI:
-000016AE  2401                     956          MOVE.L      D1,D2                   ;loop variable (size) is in D2
-000016B0  2449                     957          MOVEA.L     A1,A2                   ;pointer to next char
-000016B2  4244                     958          CLR         D4
-000016B4                           959  
-000016B4                           960  ATOI_LOOP  
-000016B4  4243                     961          CLR         D3                      ;clear d3
-000016B6                           962          ;CMP.B       #0,D2
-000016B6                           963          ;BEQ         ATOI_DONE               ;DONE
-000016B6  5382                     964          SUBI.L      #1,D2                   ;subtract 1 from loop counter
-000016B8  161A                     965          MOVE.B      (A2)+,D3                 ;move current byte to D3, then increment to next
-000016BA  B63C 002F                966          CMP.B       #$2F,D3
-000016BE  6F00 0060                967          BLE         ATOI_ERROR              ;if less than 30, not a number, branch to error
-000016C2  B63C 0039                968          CMP.B       #$39,D3                 ;check byte to see if number or letter
-000016C6  6F00 002A                969          BLE         ATOI_NUMBER             ;30<x<39 --> number
-000016CA  B63C 0040                970          CMP.B       #$40,D3
-000016CE  6F00 0050                971          BLE         ATOI_ERROR
-000016D2  B63C 0046                972          CMP.B       #$46,D3
-000016D6  6F00 0024                973          BLE         ATOI_UPPERCASE_LETTER   ;less than 47, it is uppercase letter
-000016DA  B63C 0060                974          CMP.B       #$60,D3
-000016DE  6F00 0040                975          BLE         ATOI_ERROR
-000016E2  B63C 0066                976          CMP.B       #$66,D3
-000016E6  6F00 001E                977          BLE         ATOI_LOWERCASE_LETTER
-000016EA  B63C 0067                978          CMP.B       #$67,D3
-000016EE  6C00 0030                979          BGE         ATOI_ERROR
-000016F2                           980          
-000016F2                           981          ;BNE         ATOI_LOOP                    ;run loop
-000016F2                           982      
-000016F2                           983  
-000016F2                           984  ATOI_NUMBER
-000016F2                           985  ;number --> d1 = d1 - $30
-000016F2  0403 0030                986      SUBI.B          #$30, D3                    ;subtract 30 if number
-000016F6                           987      ;MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
-000016F6  4EF9 00001710            988      JMP             ATOI_FORMAT                 ;testing
-000016FC                           989      ;JMP            ATOI_LOOP                   ;loop
-000016FC                           990  
-000016FC                           991  ATOI_UPPERCASE_LETTER
-000016FC                           992  ;letter --> d1 = d1 - $37
-000016FC  0403 0037                993      SUBI.B          #$37,D3                     ;subtract 37 if UPPER case letter
-00001700                           994      ;MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
-00001700  4EF9 00001710            995      JMP             ATOI_FORMAT                 ;testing
-00001706                           996      ;JMP            ATOI_LOOP                   ;loop
-00001706                           997  
-00001706                           998  ATOI_LOWERCASE_LETTER
-00001706  0403 0057                999      SUBI.B          #$57,D3                     ;subtract 57(20 + 37)
-0000170A                          1000      ;MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
-0000170A  4EF9 00001710           1001      JMP             ATOI_FORMAT                 ;testing
-00001710                          1002      ;JMP            ATOI_LOOP                  ;loop
-00001710                          1003  
-00001710                          1004  
-00001710                          1005  ATOI_FORMAT
-00001710  D803                    1006      ADD.B           D3,D4                       ;add the byte to D4 so can add later   
-00001712  B43C 0000               1007      CMP.B           #0,D2                       
-00001716  6700 0008               1008      BEQ             ATOI_DONE                   ;check if done (loop counter D2 is at 0)
-0000171A  E984                    1009      ASL.L           #4,D4                       ;logical shift left to make room
-0000171C  4EF8 16B4               1010      JMP             ATOI_LOOP                   ;go back to loop
-00001720                          1011  
-00001720                          1012  ATOI_ERROR
-00001720                          1013      ;come back to handle error when out of range
-00001720                          1014      
-00001720                          1015  
-00001720                          1016  ATOI_DONE 
-00001720  2284                    1017      MOVE.L         D4,(A1)                      ;at this point, move the new address in D4 to mem location                                
-00001722  4E75                    1018      RTS                                         ;used to RTS after a branch statement
-00001724                          1019  
-00001724                          1020  ;************************************* ITOA *********************************************
-00001724                          1021  ;A0
-00001724                          1022  ;A1
-00001724                          1023  ;A2 = buffer (this is our decoded string that will print to screen)
-00001724                          1024  ;A3
-00001724                          1025  ;A4 = current memory address for buffer
-00001724                          1026  ;A5 = starting address / current address in memory
-00001724                          1027  ;A6 = ending address
-00001724                          1028  ;A7 = SP
-00001724                          1029  
-00001724                          1030  ;D0 = counter
-00001724                          1031  ;D1 = 
-00001724                          1032  ;D2 = ?
-00001724                          1033  ;D3 = buffer size (used for loop = 64)
-00001724                          1034  ;D4 = value being converted
-00001724                          1035  ;D5 =
-00001724                          1036  ;D6 = 
-00001724                          1037  ;D7 = 
-00001724                          1038  ITOA:
-00001724  280D                    1039      MOVE.L         A5,D4                    ;D4 has data to convert to ascii
-00001726                          1040  
-00001726                          1041  ITOA_LOOP:
-00001726  BA3C 0000               1042      CMP.B           #0,D5
-0000172A  6700 004C               1043      BEQ             ITOA_FINISH             ;when 0, branch to finish to complete
-0000172E                          1044  
-0000172E                          1045  
-0000172E                          1046  
-0000172E                          1047  
-0000172E                          1048  ITOA_BYTE:
-0000172E                          1049  
-0000172E                          1050  
-0000172E                          1051  
-0000172E                          1052  ITOA_WORD:
-0000172E                          1053  
-0000172E                          1054  
-0000172E                          1055  
-0000172E                          1056  ITOA_LONG:
-0000172E                          1057  
-0000172E                          1058  
-0000172E                          1059  
-0000172E                          1060  ITOA_ADDRESS:
-0000172E  4284                    1061      CLR.L       D4                          ;D4 = 0000 0000
-00001730  280D                    1062      MOVE.L      A5,D4                       ;our address is now in D4 and ready to deconstruct
-00001732  103C 0008               1063      MOVE.B      #8,D0                       ;counter
-00001736  4EF9 0000173C           1064      JMP         ITOA_ADDRESS_LOOP
-0000173C                          1065  ITOA_ADDRESS_LOOP:
-0000173C  B03C 0000               1066      CMP.B       #0,D0                       ;check if done
-00001740  6700 0036               1067      BEQ         ITOA_FINISH                 ;if at 0, branch to ITOA_FINISH
-00001744  E99C                    1068      ROL.L       #4,D4                       ;rotate left 4 bits, to get MSB to beginning 
-00001746  1204                    1069      MOVE.B      D4,D1                       ;store in D1 (this will be whole byte, we want half)
-00001748  0241 000F               1070      ANDI.W      #$000F,D1                   ;character is now isolated
-0000174C                          1071      
-0000174C  4EB9 00001758           1072      JSR         ITOA_HEX2ASCII              ;JSR to convert
-00001752  5340                    1073      SUBI        #1,D0                       ;subtract 1 from counter
-00001754  4EF8 173C               1074      JMP         ITOA_ADDRESS_LOOP           ;loop again!
-00001758                          1075  
-00001758                          1076  ITOA_HEX2ASCII:
-00001758  B23C 000A               1077      CMP.B       #$A,D1                      ;compare byte in D1 to hex value A
-0000175C  6C00 0012               1078      BGE         ITOA_LETTER                 ;if greater than/equal A, it is letter
-00001760  B23C 000A               1079      CMP.B       #$A,D1                      ;compare byte in D1 to hex value A
-00001764  6D00 0002               1080      BLT         ITOA_NUMBER                 ;if less than, it is number
-00001768                          1081  
-00001768                          1082  ITOA_NUMBER:
-00001768  0601 0030               1083      ADDI.B      #$30,D1                     ;add $30 to D1 to convert
-0000176C  14C1                    1084      MOVE.B      D1,(A2)+                    ;add to buffer and increment to next position
-0000176E  4E75                    1085      RTS
-00001770                          1086  
-00001770                          1087  ITOA_LETTER:
-00001770  0601 0037               1088      ADDI.B      #$37,D1                     ;add 37 to D1 to convert
-00001774  14C1                    1089      MOVE.B      D1,(A2)+                    ;add to buffer and increment to next position
-00001776  4E75                    1090      RTS
-00001778                          1091  
-00001778                          1092  ITOA_FINISH:
-00001778  4E75                    1093      RTS
-0000177A                          1094  
-0000177A                          1095  
-0000177A                          1096  ;************************************ Validate Addresses ******************************************
-0000177A                          1097  
-0000177A                          1098  VALIDATE_BEGINNING:
-0000177A                          1099      
-0000177A                          1100  
-0000177A                          1101  
-0000177A                          1102  
-0000177A                          1103  
-0000177A                          1104  
-0000177A                          1105  
-0000177A                          1106  
-0000177A                          1107  
-0000177A                          1108  ;****************************************** EA Stuff ***************************************************** 
-0000177A                          1109  
-0000177A                          1110  EA_START:
-0000177A  4E75                    1111      RTS
-0000177C                          1112  
-0000177C                          1113  
-0000177C                          1114  
-0000177C                          1115  
-0000177C                          1116  
-0000177C                          1117  
-0000177C                          1118  
-0000177C                          1119  
-0000177C                          1120  
-0000177C                          1121  
-0000177C                          1122  
-0000177C                          1123      
-0000177C                          1124  ;****************************************** MESSAGES ***************************************************
-0000177C= 57 65 6C 63 6F 6D ...   1125  welcome_message         DC.B    'Welcome to 68k disassembler',CR,LF,0
-0000179A                          1126  
-0000179A= 50 6C 65 61 73 65 ...   1127  get_start_address       DC.B    'Please enter a starting address in hexadecimal',CR,LF,0
-000017CB                          1128  
-000017CB= 50 6C 65 61 73 65 ...   1129  get_end_address         DC.B    'Please enter an ending address in hexadecimal',CR,LF,0
-000017FB                          1130  
-000017FB= 49 6E 76 61 6C 69 ...   1131  atoi_error_invalid      DC.B    'Invalid address, characters must be $0-F',CR,LF,0
-00001826                          1132  
-00001826                          1133  ascii_start:
-00001826                          1134      DS.w    10          ;specify size later?
-0000183A                          1135      
-0000183A                          1136  ascii_end:
-0000183A                          1137      DS.w    10          ;specify size later?
-0000184E                          1138  
-0000184E                          1139  buffer                  ;storing op code
-0000184E                          1140      DS.W    64          ;do we leave as .w or change to .l ?
-000018CE                          1141      
-000018CE                          1142  
-000018CE                          1143      END    START        ; last line of source
+000014BE                           669  
+000014BE                           670  OP_LEA:
+000014BE  14FC 004C                671      MOVE.B  #'L', (A2)+
+000014C2  14FC 0045                672      MOVE.B  #'E', (A2)+
+000014C6  14FC 0041                673      MOVE.B  #'A', (A2)+
+000014CA                           674      
+000014CA  7203                     675      MOVE.L  #ea_type_lea, D1                   ;preps for EA_START and puts 3 into D1
+000014CC                           676      
+000014CC  4EB9 0000179A            677      JSR     EA_START
+000014D2  4EF8 109A                678      JMP     OP_FINISH
+000014D6                           679  
+000014D6                           680  OP_CLR:  ;(optional)
+000014D6                           681  
+000014D6                           682  
+000014D6                           683  
+000014D6                           684  OP_NOT:  ;(optional)
+000014D6                           685  
+000014D6                           686  
+000014D6                           687  
+000014D6                           688  OP_EXT:  ;(optional)
+000014D6                           689  
+000014D6                           690  
+000014D6                           691  
+000014D6                           692  OP_TRAP:  ;(optional)
+000014D6                           693  
+000014D6                           694  
+000014D6                           695   
+000014D6                           696  OP_STOP:  ;(optional)
+000014D6                           697  
+000014D6                           698  
+000014D6                           699  
+000014D6                           700  OP_RTE:  ;(optional)
+000014D6                           701  
+000014D6                           702  
+000014D6                           703  
+000014D6                           704  OP_RTS:  ;(optional)
+000014D6                           705  
+000014D6                           706  
+000014D6                           707  
+000014D6                           708  OP_JSR:  ;(optional)
+000014D6                           709  
+000014D6                           710  
+000014D6                           711  
+000014D6                           712  OP_JMP:  ;(optional)
+000014D6                           713  
+000014D6                           714  
+000014D6                           715  
+000014D6                           716  OP_ADDQ:
+000014D6  14FC 0041                717      MOVE.B  #'A', (A2)+
+000014DA  14FC 0044                718      MOVE.B  #'D', (A2)+
+000014DE  14FC 0044                719      MOVE.B  #'D', (A2)+
+000014E2  14FC 0051                720      MOVE.B  #'Q', (A2)+
+000014E6                           721      
+000014E6                           722      ;call OP_CHECK_SIZE to append a .b/.w/.l
+000014E6  4EB9 00001670            723      JSR     OP_CHECK_SIZE
+000014EC                           724  
+000014EC  7208                     725      MOVE.L  #ea_type_quick, D1                   ;preps for EA_START and puts 8 into D1
+000014EE                           726  
+000014EE  4EB9 0000179A            727      JSR     EA_START
+000014F4  4EF8 109A                728      JMP     OP_FINISH
+000014F8                           729  
+000014F8                           730  OP_SUBQ:  ;(optional)
+000014F8                           731  
+000014F8                           732  
+000014F8                           733  
+000014F8                           734  OP_BRA:                                     ;???? DO WE DEFINE SIZE HERE OR AFTER????
+000014F8  14FC 0042                735      MOVE.B  #'B', (A2)+
+000014FC  14FC 0052                736      MOVE.B  #'R', (A2)+
+00001500  14FC 0041                737      MOVE.B  #'A', (A2)+
+00001504                           738  
+00001504  4EB9 0000179A            739      JSR     EA_START                        ;? DO WE HAVE EA?
+0000150A  4EF8 109A                740      JMP     OP_FINISH
+0000150E                           741  
+0000150E                           742  
+0000150E                           743  OP_BSR:
+0000150E  14FC 0042                744      MOVE.B  #'B', (A2)+
+00001512  14FC 0053                745      MOVE.B  #'S', (A2)+
+00001516  14FC 0052                746      MOVE.B  #'R', (A2)+
+0000151A                           747  
+0000151A  4EB9 0000179A            748      JSR     EA_START                        ;DO WE HAVE EA?
+00001520  4EF8 109A                749      JMP     OP_FINISH
+00001524                           750  
+00001524                           751  
+00001524                           752  OP_BEQ:
+00001524                           753  
+00001524                           754  
+00001524                           755  
+00001524                           756  OP_MOVEQ:
+00001524  14FC 004D                757      MOVE.B  #'M', (A2)+
+00001528  14FC 004F                758      MOVE.B  #'O', (A2)+
+0000152C  14FC 0056                759      MOVE.B  #'V', (A2)+
+00001530  14FC 0045                760      MOVE.B  #'E', (A2)+
+00001534  14FC 0051                761      MOVE.B  #'Q', (A2)+
+00001538                           762      
+00001538                           763      ;DO WE NEED A .L ?
+00001538                           764      
+00001538  7208                     765      MOVE.L  #ea_type_quick, D1                   ;preps for EA_START and puts 8 into D1
+0000153A                           766      
+0000153A  4EB9 0000179A            767      JSR     EA_START
+00001540  4EF8 109A                768      JMP     OP_FINISH
+00001544                           769  
+00001544                           770  
+00001544                           771  OP_DIVU:
+00001544  14FC 0044                772      MOVE.B  #'D', (A2)+
+00001548  14FC 0049                773      MOVE.B  #'I', (A2)+
+0000154C  14FC 0056                774      MOVE.B  #'V', (A2)+
+00001550  14FC 0055                775      MOVE.B  #'U', (A2)+
+00001554                           776      ;MOVE.B  #'.', (A2)+
+00001554                           777      ;MOVE.B  #'W', (A2)+  
+00001554                           778    
+00001554  4EB9 0000179A            779      JSR     EA_START
+0000155A  4EF8 109A                780      JMP     OP_FINISH    
+0000155E                           781  
+0000155E                           782  
+0000155E                           783  OP_DIVS  ;(optional)
+0000155E                           784  
+0000155E                           785  
+0000155E                           786  
+0000155E                           787  OP_OR  ;(optional)
+0000155E                           788  
+0000155E                           789  
+0000155E                           790  
+0000155E                           791  OP_SUB:
+0000155E  14FC 0053                792      MOVE.B  #'S', (A2)+
+00001562  14FC 0055                793      MOVE.B  #'U', (A2)+
+00001566  14FC 0042                794      MOVE.B  #'B', (A2)+
+0000156A                           795  
+0000156A                           796      ;to determine size... bits 7 and 6? (.b, .w, .l)
+0000156A                           797      ;D0 HAS COMPLETE OP CODE INSTRUCTION (XXXX)
+0000156A                           798      
+0000156A                           799      ;call OP_CHECK_SIZE to append a .b/.w/.l
+0000156A  4EB9 00001670            800      JSR     OP_CHECK_SIZE
+00001570                           801      
+00001570                           802      ;at this point it will return with SUB.X and go to EA_START
+00001570  4EB9 0000179A            803      JSR     EA_START
+00001576  4EF8 109A                804      JMP     OP_FINISH    
+0000157A                           805  
+0000157A                           806  
+0000157A                           807  OP_CMP:
+0000157A  14FC 0043                808      MOVE.B  #'C', (A2)+
+0000157E  14FC 004D                809      MOVE.B  #'M', (A2)+
+00001582  14FC 0050                810      MOVE.B  #'P', (A2)+
+00001586                           811  
+00001586                           812      ;call OP_CHECK_SIZE to append a .b/.w/.l    
+00001586  4EB9 00001670            813      JSR     OP_CHECK_SIZE
+0000158C                           814      
+0000158C                           815      ;at this point it will return with SUB.X and go to EA_START
+0000158C  4EB9 0000179A            816      JSR     EA_START
+00001592  4EF8 109A                817      JMP     OP_FINISH    
+00001596                           818      
+00001596                           819  
+00001596                           820  
+00001596                           821  OP_EOR:  ;(optional)
+00001596                           822  
+00001596                           823  
+00001596                           824  
+00001596                           825  OP_MULU:
+00001596  14FC 004D                826      MOVE.B  #'M', (A2)+
+0000159A  14FC 0055                827      MOVE.B  #'U', (A2)+
+0000159E  14FC 004C                828      MOVE.B  #'L', (A2)+
+000015A2  14FC 0055                829      MOVE.B  #'U', (A2)+
+000015A6                           830  
+000015A6  4EB9 0000179A            831      JSR     EA_START
+000015AC  4EF8 109A                832      JMP     OP_FINISH    
+000015B0                           833  
+000015B0                           834  OP_MULS:  ;(optional)
+000015B0                           835  
+000015B0                           836  
+000015B0                           837  
+000015B0                           838  OP_AND:  ;(optional)
+000015B0                           839  
+000015B0                           840  
+000015B0                           841  
+000015B0                           842  OP_ADD:
+000015B0  14FC 0041                843      MOVE.B  #'A', (A2)+
+000015B4  14FC 0044                844      MOVE.B  #'D', (A2)+
+000015B8  14FC 0044                845      MOVE.B  #'D', (A2)+
+000015BC                           846  
+000015BC                           847      ;call OP_CHECK_SIZE to append a .b/.w/.l
+000015BC  4EB9 00001670            848      JSR     OP_CHECK_SIZE
+000015C2                           849  
+000015C2  4EB9 0000179A            850      JSR     EA_START
+000015C8  4EF8 109A                851      JMP     OP_FINISH
+000015CC                           852  
+000015CC                           853  OP_ADDA:
+000015CC  14FC 0041                854      MOVE.B  #'A', (A2)+
+000015D0  14FC 0044                855      MOVE.B  #'D', (A2)+
+000015D4  14FC 0044                856      MOVE.B  #'D', (A2)+
+000015D8  14FC 0041                857      MOVE.B  #'A', (A2)+
+000015DC                           858  
+000015DC                           859      ;call OP_CHECK_SIZE to append a .b/.w/.l
+000015DC  4EB9 000016B2            860      JSR     OP_CHECK_SIZE_ADDA
+000015E2                           861  
+000015E2  4EB9 0000179A            862      JSR     EA_START
+000015E8  4EF8 109A                863      JMP     OP_FINISH
+000015EC                           864  
+000015EC                           865  
+000015EC                           866  OP_ASL:
+000015EC  14FC 0041                867      MOVE.B  #'A', (A2)+
+000015F0  14FC 0053                868      MOVE.B  #'S', (A2)+
+000015F4  14FC 004C                869      MOVE.B  #'L', (A2)+
+000015F8                           870  
+000015F8                           871      ;call OP_CHECK_SIZE to append a .b/.w/.l
+000015F8  4EB9 00001670            872      JSR     OP_CHECK_SIZE
+000015FE                           873  
+000015FE  4EB9 0000179A            874      JSR     EA_START
+00001604  4EF8 109A                875      JMP     OP_FINISH
+00001608                           876  
+00001608                           877  
+00001608                           878  OP_ASR:
+00001608  14FC 0041                879      MOVE.B  #'A', (A2)+
+0000160C  14FC 0053                880      MOVE.B  #'S', (A2)+
+00001610  14FC 0052                881      MOVE.B  #'R', (A2)+
+00001614                           882  
+00001614                           883      ;call OP_CHECK_SIZE to append a .b/.w/.l
+00001614  4EB9 00001670            884      JSR     OP_CHECK_SIZE
+0000161A                           885  
+0000161A  4EB9 0000179A            886      JSR     EA_START
+00001620  4EF8 109A                887      JMP     OP_FINISH
+00001624                           888  
+00001624                           889  OP_LSL:  ;(optional)
+00001624                           890  
+00001624                           891  
+00001624                           892  
+00001624                           893  
+00001624                           894  OP_LSR:  ;(optional)
+00001624                           895  
+00001624                           896  
+00001624                           897  
+00001624                           898  
+00001624                           899  OP_ROL:  ;(optional)
+00001624                           900  
+00001624                           901  
+00001624                           902  
+00001624                           903  
+00001624                           904  OP_ROR:  ;(optional)
+00001624                           905  
+00001624                           906  
+00001624                           907  
+00001624                           908  OP_MOVEM_R2M:
+00001624  14FC 004D                909      MOVE.B  #'M', (A2)+
+00001628  14FC 004F                910      MOVE.B  #'O', (A2)+
+0000162C  14FC 0056                911      MOVE.B  #'V', (A2)+
+00001630  14FC 0045                912      MOVE.B  #'E', (A2)+
+00001634  14FC 004D                913      MOVE.B  #'M', (A2)+
+00001638                           914      
+00001638                           915      ;call OP_CHECK_SIZE to append a .b/.w/.l
+00001638  4EB9 00001670            916      JSR     OP_CHECK_SIZE
+0000163E                           917      
+0000163E  7206                     918      MOVE.L  #ea_type_movem, D1                   ;preps for EA_START and puts 6 into D1
+00001640                           919      
+00001640  4EB9 0000179A            920      JSR     EA_START
+00001646  4EF8 109A                921      JMP     OP_FINISH
+0000164A                           922  
+0000164A                           923  
+0000164A                           924  OP_MOVEM_M2R:
+0000164A  14FC 004D                925      MOVE.B  #'M', (A2)+
+0000164E  14FC 004F                926      MOVE.B  #'O', (A2)+
+00001652  14FC 0056                927      MOVE.B  #'V', (A2)+
+00001656  14FC 0045                928      MOVE.B  #'E', (A2)+
+0000165A  14FC 004D                929      MOVE.B  #'M', (A2)+
+0000165E                           930      
+0000165E                           931      ;call OP_CHECK_SIZE to append a .b/.w/.l
+0000165E  4EB9 00001670            932      JSR     OP_CHECK_SIZE
+00001664                           933      
+00001664  7206                     934      MOVE.L  #ea_type_movem, D1                   ;preps for EA_START and puts 6 into D1
+00001666                           935      
+00001666  4EB9 0000179A            936      JSR     EA_START
+0000166C  4EF8 109A                937      JMP     OP_FINISH
+00001670                           938  
+00001670                           939  
+00001670                           940  OP_UNSUPPORTED_OPCODE:
+00001670                           941  
+00001670                           942  
+00001670                           943  ;D0 HAS COMPLETE INSTRUCTION
+00001670                           944  OP_CHECK_SIZE:
+00001670  4241                     945      CLR     D1                                  ;CLEAR D1
+00001672  4242                     946      CLR     D2                                  ;clear D2
+00001674  2200                     947      MOVE.L  D0,D1                               ;D0 and D1 both have complete opcode
+00001676  0241 00F0                948      ANDI.W  #nibble3,D1                         ;isolate nibble 3
+0000167A  143C 0006                949      MOVE.B  #right6, D2                         ;putting immediate value 6 in D2
+0000167E  E469                     950      LSR.W   D2, D1                              ;bits 7,6 --> bits 1,0
+00001680                           951      
+00001680                           952       
+00001680  B27C 0000                953      CMP     #00,D1                              ;compare bits 1,0 to 00
+00001684  6700 000E                954      BEQ     OP_SIZE_BYTE                        ;if bits == 00, size byte
+00001688  B27C 0001                955      CMP     #01,D1                              ;compare bits to 01
+0000168C  6700 0010                956      BEQ     OP_SIZE_WORD                        ;if bits == 01, size word
+00001690  6000 0016                957      BRA     OP_SIZE_LONG                        ;else size long
+00001694                           958  
+00001694                           959  OP_SIZE_BYTE
+00001694  14FC 002E                960      MOVE.B  #'.', (A2)+
+00001698  14FC 0042                961      MOVE.B  #'B', (A2)+
+0000169C  4E75                     962      RTS
+0000169E                           963  
+0000169E                           964  OP_SIZE_WORD
+0000169E  14FC 002E                965      MOVE.B  #'.', (A2)+
+000016A2  14FC 0057                966      MOVE.B  #'W', (A2)+
+000016A6  4E75                     967      RTS
+000016A8                           968  
+000016A8                           969  
+000016A8                           970  OP_SIZE_LONG
+000016A8  14FC 002E                971      MOVE.B  #'.', (A2)+
+000016AC  14FC 004C                972      MOVE.B  #'L', (A2)+
+000016B0  4E75                     973      RTS
+000016B2                           974  
+000016B2                           975  
+000016B2                           976  OP_CHECK_SIZE_ADDA:
+000016B2  4241                     977      CLR     D1                                  ;CLEAR D1
+000016B4  4242                     978      CLR     D2                                  ;clear D2
+000016B6  2200                     979      MOVE.L  D0,D1                               ;D0 and D1 both have complete opcode
+000016B8  0241 0F00                980      ANDI.W  #nibble2,D1                         ;isolate nibble 2
+000016BC  143C 0008                981      MOVE.B  #right8, D2                         ;putting immediate value 8 in D2
+000016C0  E469                     982      LSR.W   D2, D1                              ;
+000016C2                           983      
+000016C2                           984      ;at this point we have our single bit in bit 0
+000016C2                           985      
+000016C2  0241 0001                986      ANDI.W  #0001,D1                            ;isolate bit 0
+000016C6  B27C 0000                987      CMP     #0,D1                               ;check if bit == 0
+000016CA  67D2                     988      BEQ     OP_SIZE_WORD                        ;if yes, size = word
+000016CC  60DA                     989      BRA     OP_SIZE_LONG                        ;else, size = long
+000016CE                           990  
+000016CE                           991   
+000016CE                           992  
+000016CE                           993  ;******************************** ATOI *********************************************
+000016CE                           994  ATOI:
+000016CE  2401                     995          MOVE.L      D1,D2                   ;loop variable (size) is in D2
+000016D0  2449                     996          MOVEA.L     A1,A2                   ;pointer to next char
+000016D2  4244                     997          CLR         D4
+000016D4                           998  
+000016D4                           999  ATOI_LOOP  
+000016D4  4243                    1000          CLR         D3                      ;clear d3
+000016D6                          1001          ;CMP.B       #0,D2
+000016D6                          1002          ;BEQ         ATOI_DONE               ;DONE
+000016D6  5382                    1003          SUBI.L      #1,D2                   ;subtract 1 from loop counter
+000016D8  161A                    1004          MOVE.B      (A2)+,D3                 ;move current byte to D3, then increment to next
+000016DA  B63C 002F               1005          CMP.B       #$2F,D3
+000016DE  6F00 0060               1006          BLE         ATOI_ERROR              ;if less than 30, not a number, branch to error
+000016E2  B63C 0039               1007          CMP.B       #$39,D3                 ;check byte to see if number or letter
+000016E6  6F00 002A               1008          BLE         ATOI_NUMBER             ;30<x<39 --> number
+000016EA  B63C 0040               1009          CMP.B       #$40,D3
+000016EE  6F00 0050               1010          BLE         ATOI_ERROR
+000016F2  B63C 0046               1011          CMP.B       #$46,D3
+000016F6  6F00 0024               1012          BLE         ATOI_UPPERCASE_LETTER   ;less than 47, it is uppercase letter
+000016FA  B63C 0060               1013          CMP.B       #$60,D3
+000016FE  6F00 0040               1014          BLE         ATOI_ERROR
+00001702  B63C 0066               1015          CMP.B       #$66,D3
+00001706  6F00 001E               1016          BLE         ATOI_LOWERCASE_LETTER
+0000170A  B63C 0067               1017          CMP.B       #$67,D3
+0000170E  6C00 0030               1018          BGE         ATOI_ERROR
+00001712                          1019          
+00001712                          1020          ;BNE         ATOI_LOOP                    ;run loop
+00001712                          1021      
+00001712                          1022  
+00001712                          1023  ATOI_NUMBER
+00001712                          1024  ;number --> d1 = d1 - $30
+00001712  0403 0030               1025      SUBI.B          #$30, D3                    ;subtract 30 if number
+00001716                          1026      ;MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
+00001716  4EF9 00001730           1027      JMP             ATOI_FORMAT                 ;testing
+0000171C                          1028      ;JMP            ATOI_LOOP                   ;loop
+0000171C                          1029  
+0000171C                          1030  ATOI_UPPERCASE_LETTER
+0000171C                          1031  ;letter --> d1 = d1 - $37
+0000171C  0403 0037               1032      SUBI.B          #$37,D3                     ;subtract 37 if UPPER case letter
+00001720                          1033      ;MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
+00001720  4EF9 00001730           1034      JMP             ATOI_FORMAT                 ;testing
+00001726                          1035      ;JMP            ATOI_LOOP                   ;loop
+00001726                          1036  
+00001726                          1037  ATOI_LOWERCASE_LETTER
+00001726  0403 0057               1038      SUBI.B          #$57,D3                     ;subtract 57(20 + 37)
+0000172A                          1039      ;MOVE.B          D3,(A2)+                    ;move into A2 and post increment pointer
+0000172A  4EF9 00001730           1040      JMP             ATOI_FORMAT                 ;testing
+00001730                          1041      ;JMP            ATOI_LOOP                  ;loop
+00001730                          1042  
+00001730                          1043  
+00001730                          1044  ATOI_FORMAT
+00001730  D803                    1045      ADD.B           D3,D4                       ;add the byte to D4 so can add later   
+00001732  B43C 0000               1046      CMP.B           #0,D2                       
+00001736  6700 0008               1047      BEQ             ATOI_DONE                   ;check if done (loop counter D2 is at 0)
+0000173A  E984                    1048      ASL.L           #4,D4                       ;logical shift left to make room
+0000173C  4EF8 16D4               1049      JMP             ATOI_LOOP                   ;go back to loop
+00001740                          1050  
+00001740                          1051  ATOI_ERROR
+00001740                          1052      ;come back to handle error when out of range
+00001740                          1053      
+00001740                          1054  
+00001740                          1055  ATOI_DONE 
+00001740  2284                    1056      MOVE.L         D4,(A1)                      ;at this point, move the new address in D4 to mem location                                
+00001742  4E75                    1057      RTS                                         ;used to RTS after a branch statement
+00001744                          1058  
+00001744                          1059  ;************************************* ITOA *********************************************
+00001744                          1060  ;A0
+00001744                          1061  ;A1
+00001744                          1062  ;A2 = buffer (this is our decoded string that will print to screen)
+00001744                          1063  ;A3
+00001744                          1064  ;A4 = current memory address for buffer
+00001744                          1065  ;A5 = starting address / current address in memory
+00001744                          1066  ;A6 = ending address
+00001744                          1067  ;A7 = SP
+00001744                          1068  
+00001744                          1069  ;D0 = counter
+00001744                          1070  ;D1 = 
+00001744                          1071  ;D2 = ?
+00001744                          1072  ;D3 = buffer size (used for loop = 64)
+00001744                          1073  ;D4 = value being converted
+00001744                          1074  ;D5 =
+00001744                          1075  ;D6 = 
+00001744                          1076  ;D7 = 
+00001744                          1077  ITOA:
+00001744  280D                    1078      MOVE.L         A5,D4                    ;D4 has data to convert to ascii
+00001746                          1079  
+00001746                          1080  ITOA_LOOP:
+00001746  BA3C 0000               1081      CMP.B           #0,D5
+0000174A  6700 004C               1082      BEQ             ITOA_FINISH             ;when 0, branch to finish to complete
+0000174E                          1083  
+0000174E                          1084  
+0000174E                          1085  
+0000174E                          1086  
+0000174E                          1087  ITOA_BYTE:
+0000174E                          1088  
+0000174E                          1089  
+0000174E                          1090  
+0000174E                          1091  ITOA_WORD:
+0000174E                          1092  
+0000174E                          1093  
+0000174E                          1094  
+0000174E                          1095  ITOA_LONG:
+0000174E                          1096  
+0000174E                          1097  
+0000174E                          1098  
+0000174E                          1099  ITOA_ADDRESS:
+0000174E  4284                    1100      CLR.L       D4                          ;D4 = 0000 0000
+00001750  280D                    1101      MOVE.L      A5,D4                       ;our address is now in D4 and ready to deconstruct
+00001752  103C 0008               1102      MOVE.B      #8,D0                       ;counter
+00001756  4EF9 0000175C           1103      JMP         ITOA_ADDRESS_LOOP
+0000175C                          1104  ITOA_ADDRESS_LOOP:
+0000175C  B03C 0000               1105      CMP.B       #0,D0                       ;check if done
+00001760  6700 0036               1106      BEQ         ITOA_FINISH                 ;if at 0, branch to ITOA_FINISH
+00001764  E99C                    1107      ROL.L       #4,D4                       ;rotate left 4 bits, to get MSB to beginning 
+00001766  1204                    1108      MOVE.B      D4,D1                       ;store in D1 (this will be whole byte, we want half)
+00001768  0241 000F               1109      ANDI.W      #$000F,D1                   ;character is now isolated
+0000176C                          1110      
+0000176C  4EB9 00001778           1111      JSR         ITOA_HEX2ASCII              ;JSR to convert
+00001772  5340                    1112      SUBI        #1,D0                       ;subtract 1 from counter
+00001774  4EF8 175C               1113      JMP         ITOA_ADDRESS_LOOP           ;loop again!
+00001778                          1114  
+00001778                          1115  ITOA_HEX2ASCII:
+00001778  B23C 000A               1116      CMP.B       #$A,D1                      ;compare byte in D1 to hex value A
+0000177C  6C00 0012               1117      BGE         ITOA_LETTER                 ;if greater than/equal A, it is letter
+00001780  B23C 000A               1118      CMP.B       #$A,D1                      ;compare byte in D1 to hex value A
+00001784  6D00 0002               1119      BLT         ITOA_NUMBER                 ;if less than, it is number
+00001788                          1120  
+00001788                          1121  ITOA_NUMBER:
+00001788  0601 0030               1122      ADDI.B      #$30,D1                     ;add $30 to D1 to convert
+0000178C  14C1                    1123      MOVE.B      D1,(A2)+                    ;add to buffer and increment to next position
+0000178E  4E75                    1124      RTS
+00001790                          1125  
+00001790                          1126  ITOA_LETTER:
+00001790  0601 0037               1127      ADDI.B      #$37,D1                     ;add 37 to D1 to convert
+00001794  14C1                    1128      MOVE.B      D1,(A2)+                    ;add to buffer and increment to next position
+00001796  4E75                    1129      RTS
+00001798                          1130  
+00001798                          1131  ITOA_FINISH:
+00001798  4E75                    1132      RTS
+0000179A                          1133  
+0000179A                          1134  
+0000179A                          1135  ;************************************ Validate Addresses ******************************************
+0000179A                          1136  
+0000179A                          1137  VALIDATE_BEGINNING:
+0000179A                          1138      
+0000179A                          1139  
+0000179A                          1140  
+0000179A                          1141  
+0000179A                          1142  
+0000179A                          1143  
+0000179A                          1144  
+0000179A                          1145  
+0000179A                          1146  
+0000179A                          1147  ;****************************************** EA Stuff ***************************************************** 
+0000179A                          1148  
+0000179A                          1149  EA_START:
+0000179A  41F9 000017A8           1150      LEA         EA_TYPE_TABLE, A0
+000017A0                          1151      
+000017A0  C2FC 0006               1152      MULU        #6,D1               ;computes opcode table jump displacement
+000017A4  4EF0 1000               1153      JMP         0(A0,D1)            ;jump to correct table input
+000017A8                          1154  
+000017A8                          1155  
+000017A8                          1156  EA_TYPE_TABLE:
+000017A8  4EF9 000017EC           1157      JMP         EA_IMMEDIATE
+000017AE  4EF9 000017EC           1158      JMP         EA_MOVE
+000017B4  4EF9 000017EC           1159      JMP         EA_MOVEA
+000017BA  4EF9 000017EC           1160      JMP         EA_LEA
+000017C0  4EF9 000017EC           1161      JMP         EA_DESTONLY
+000017C6  4EF9 000017EC           1162      JMP         EA_EXT
+000017CC  4EF9 000017EC           1163      JMP         EA_MOVEM
+000017D2  4EF9 000017EC           1164      JMP         EA_TRAP
+000017D8  4EF9 000017EC           1165      JMP         EA_QUICK
+000017DE  4EF9 000017EC           1166      JMP         EA_BRANCH
+000017E4  4EF9 000017EA           1167      JMP         EA_FINISH
+000017EA                          1168  
+000017EA                          1169  EA_FINISH:
+000017EA  4E75                    1170      RTS ; TAKE OUT LATER
+000017EC                          1171      
+000017EC                          1172  
+000017EC                          1173  
+000017EC                          1174  ;********************************************  EA_TYPE  ****************************************************   
+000017EC                          1175  
+000017EC                          1176  EA_IMMEDIATE:
+000017EC                          1177  
+000017EC                          1178  
+000017EC                          1179  
+000017EC                          1180  ;D4 = mode
+000017EC                          1181  ;D5 = register    
+000017EC                          1182  EA_MOVE:
+000017EC                          1183      ;source mode are bits 3,4,5   |    ;source register are bits 0,1,2
+000017EC                          1184      ;isolate source mode        000 - 111
+000017EC                          1185      ;store source moe in D4
+000017EC                          1186      ;isolate source register    000 - 111
+000017EC                          1187      ;store source register in D5    
+000017EC                          1188      ;JSR EA_MODE_XXX
+000017EC                          1189     
+000017EC                          1190      ;add a ',' to buffer
+000017EC                          1191      ;at this point buffer would be "00000400    MOVE.B D7,"    
+000017EC                          1192      
+000017EC                          1193      
+000017EC                          1194      
+000017EC                          1195      ;isolate DESTINATION mode        000 - 111
+000017EC                          1196      ;store DESTINATION moe in D4
+000017EC                          1197      ;isolate DESTINATION register    000 - 111
+000017EC                          1198      ;store DESTINATION register in D5    
+000017EC                          1199      ;JSR to EA_MODE_XXX
+000017EC                          1200  
+000017EC                          1201  
+000017EC                          1202      ;at this point buffer would be "00000400    MOVE.B D7,D2"
+000017EC                          1203  
+000017EC                          1204      ;JMP EA_FINISH
+000017EC                          1205  
+000017EC                          1206  
+000017EC                          1207  EA_MOVEA:
+000017EC                          1208  
+000017EC                          1209  
+000017EC                          1210  
+000017EC                          1211  
+000017EC                          1212  EA_LEA:
+000017EC                          1213  
+000017EC                          1214  
+000017EC                          1215  
+000017EC                          1216  
+000017EC                          1217  
+000017EC                          1218  EA_DESTONLY:
+000017EC                          1219  
+000017EC                          1220  
+000017EC                          1221  
+000017EC                          1222  
+000017EC                          1223  
+000017EC                          1224  EA_EXT:
+000017EC                          1225  
+000017EC                          1226  
+000017EC                          1227  
+000017EC                          1228  
+000017EC                          1229  
+000017EC                          1230  EA_MOVEM:
+000017EC                          1231  
+000017EC                          1232  
+000017EC                          1233  
+000017EC                          1234  
+000017EC                          1235  EA_TRAP:
+000017EC                          1236  
+000017EC                          1237  
+000017EC                          1238  
+000017EC                          1239  
+000017EC                          1240  
+000017EC                          1241  EA_QUICK:
+000017EC                          1242  
+000017EC                          1243  
+000017EC                          1244  
+000017EC                          1245  
+000017EC                          1246  EA_BRANCH:
+000017EC                          1247  
+000017EC                          1248  
+000017EC                          1249  
+000017EC                          1250  
+000017EC                          1251  ;********************************************  EA_MODE_TABLE  ****************************************************  
+000017EC                          1252  EA_MODE_TABLE:
+000017EC  4EF9 0000181C           1253      JMP     EA_MODE_000
+000017F2  4EF9 0000181C           1254      JMP     EA_MODE_001
+000017F8  4EF9 0000181C           1255      JMP     EA_MODE_010
+000017FE  4EF9 0000181C           1256      JMP     EA_MODE_011
+00001804  4EF9 0000181C           1257      JMP     EA_MODE_100
+0000180A  4EF9 0000181C           1258      JMP     EA_MODE_101
+00001810  4EF9 0000181C           1259      JMP     EA_MODE_110
+00001816  4EF9 0000181C           1260      JMP     EA_MODE_111
+0000181C                          1261  
+0000181C                          1262  
+0000181C                          1263  ;********************************************  EA_MODE_XXX  ****************************************************    
+0000181C                          1264  EA_MODE_000:
+0000181C                          1265      ;add a 'D' to buffer
+0000181C                          1266      ;MOVE.B D5,D3
+0000181C                          1267      ;JSR convert D3 to ASCII (EA_HEX_TO_ASCII)which puts on buffer  
+0000181C                          1268      ;RTS
+0000181C                          1269  
+0000181C                          1270      
+0000181C                          1271      
+0000181C                          1272  EA_MODE_001:
+0000181C                          1273  
+0000181C                          1274  
+0000181C                          1275  
+0000181C                          1276  EA_MODE_010:
+0000181C                          1277  
+0000181C                          1278  
+0000181C                          1279  
+0000181C                          1280  EA_MODE_011:        ;"(An)+"
+0000181C                          1281  
+0000181C                          1282  
+0000181C                          1283  
+0000181C                          1284  EA_MODE_100:
+0000181C                          1285  
+0000181C                          1286  
+0000181C                          1287  
+0000181C                          1288  EA_MODE_101:
+0000181C                          1289  
+0000181C                          1290  
+0000181C                          1291  
+0000181C                          1292  EA_MODE_110:
+0000181C                          1293  
+0000181C                          1294  
+0000181C                          1295  
+0000181C                          1296  EA_MODE_111:        
+0000181C                          1297      
+0000181C                          1298      
+0000181C                          1299      
+0000181C                          1300  
+0000181C                          1301  EA_HEX_TO_ASCII
+0000181C  0603 0030               1302      ADDI.B      #$30,D3                     ;add $30 to D1 to convert
+00001820  14C1                    1303      MOVE.B      D1,(A2)+                    ;add to buffer and increment to next position
+00001822  4E75                    1304      RTS     
+00001824                          1305      
+00001824                          1306  ;****************************************** MESSAGES ***************************************************
+00001824= 57 65 6C 63 6F 6D ...   1307  welcome_message         DC.B    'Welcome to 68k disassembler',CR,LF,0
+00001842                          1308  
+00001842= 50 6C 65 61 73 65 ...   1309  get_start_address       DC.B    'Please enter a starting address in hexadecimal',CR,LF,0
+00001873                          1310  
+00001873= 50 6C 65 61 73 65 ...   1311  get_end_address         DC.B    'Please enter an ending address in hexadecimal',CR,LF,0
+000018A3                          1312  
+000018A3= 49 6E 76 61 6C 69 ...   1313  atoi_error_invalid      DC.B    'Invalid address, characters must be $0-F',CR,LF,0
+000018CE                          1314  
+000018CE                          1315  ascii_start:
+000018CE                          1316      DS.w    10          ;specify size later?
+000018E2                          1317      
+000018E2                          1318  ascii_end:
+000018E2                          1319      DS.w    10          ;specify size later?
+000018F6                          1320  
+000018F6                          1321  buffer                  ;storing op code
+000018F6                          1322      DS.W    64          ;do we leave as .w or change to .l ?
+00001976                          1323      
+00001976                          1324  
+00001976                          1325      END    START        ; last line of source
 
 No errors detected
 No warnings generated
@@ -1153,39 +1335,72 @@ No warnings generated
 SYMBOL TABLE INFORMATION
 Symbol-name         Value
 -------------------------
-ASCII_END           183A
-ASCII_START         1826
-ATOI                16AE
-ATOI_DONE           1720
-ATOI_ERROR          1720
-ATOI_ERROR_INVALID  17FB
-ATOI_FORMAT         1710
-ATOI_LOOP           16B4
-ATOI_LOWERCASE_LETTER  1706
-ATOI_NUMBER         16F2
-ATOI_UPPERCASE_LETTER  16FC
-BUFFER              184E
+ASCII_END           18E2
+ASCII_START         18CE
+ATOI                16CE
+ATOI_DONE           1740
+ATOI_ERROR          1740
+ATOI_ERROR_INVALID  18A3
+ATOI_FORMAT         1730
+ATOI_LOOP           16D4
+ATOI_LOWERCASE_LETTER  1726
+ATOI_NUMBER         1712
+ATOI_UPPERCASE_LETTER  171C
+BUFFER              18F6
 BUFFER_SIZE         40
 CR                  D
 DECODING_LOOP       105E
 DEST_MODE           1C0
 DONE                1064
-EA_START            177A
+EA_BRANCH           17EC
+EA_DESTONLY         17EC
+EA_EXT              17EC
+EA_FINISH           17EA
+EA_HEX_TO_ASCII     181C
+EA_IMMEDIATE        17EC
+EA_LEA              17EC
+EA_MODE_000         181C
+EA_MODE_001         181C
+EA_MODE_010         181C
+EA_MODE_011         181C
+EA_MODE_100         181C
+EA_MODE_101         181C
+EA_MODE_110         181C
+EA_MODE_111         181C
+EA_MODE_TABLE       17EC
+EA_MOVE             17EC
+EA_MOVEA            17EC
+EA_MOVEM            17EC
+EA_QUICK            17EC
+EA_START            179A
+EA_TRAP             17EC
+EA_TYPE_BRANCH      9
+EA_TYPE_DESTONLY    4
+EA_TYPE_EXT         5
+EA_TYPE_IMMEDIATE   0
+EA_TYPE_LEA         3
+EA_TYPE_MOVE        1
+EA_TYPE_MOVEA       2
+EA_TYPE_MOVEA6      C
+EA_TYPE_MOVEM       6
+EA_TYPE_QUICK       8
+EA_TYPE_TABLE       17A8
+EA_TYPE_TRAP        7
 GET_ENDING_ADDRESS  1038
-GET_END_ADDRESS     17CB
+GET_END_ADDRESS     1873
 GET_STARTING_ADDRESS  1012
-GET_START_ADDRESS   179A
-ITOA                1724
-ITOA_ADDRESS        172E
-ITOA_ADDRESS_LOOP   173C
-ITOA_BYTE           172E
-ITOA_FINISH         1778
-ITOA_HEX2ASCII      1758
-ITOA_LETTER         1770
-ITOA_LONG           172E
-ITOA_LOOP           1726
-ITOA_NUMBER         1768
-ITOA_WORD           172E
+GET_START_ADDRESS   1842
+ITOA                1744
+ITOA_ADDRESS        174E
+ITOA_ADDRESS_LOOP   175C
+ITOA_BYTE           174E
+ITOA_FINISH         1798
+ITOA_HEX2ASCII      1778
+ITOA_LETTER         1790
+ITOA_LONG           174E
+ITOA_LOOP           1746
+ITOA_NUMBER         1788
+ITOA_WORD           174E
 LF                  A
 LINES_PER_SCREEN    1E
 NIBBLE2             F00
@@ -1216,65 +1431,65 @@ OP_1100_TABLE       132A
 OP_1101_TABLE       132A
 OP_1110_TABLE       132A
 OP_1111_TABLE       132A
-OP_ADD              1594
-OP_ADDA             15B0
-OP_ADDI             1386
-OP_ADDQ             14BE
-OP_AND              1594
-OP_ANDI             1346
-OP_ASL              15D0
-OP_ASR              15EC
-OP_BEQ              150A
-OP_BRA              14DE
-OP_BSR              14F4
-OP_CHECK_SIZE       1650
-OP_CHECK_SIZE_ADDA  1692
-OP_CLR              14BE
-OP_CMP              155E
-OP_CMPI             13C6
+OP_ADD              15B0
+OP_ADDA             15CC
+OP_ADDI             138C
+OP_ADDQ             14D6
+OP_AND              15B0
+OP_ANDI             1348
+OP_ASL              15EC
+OP_ASR              1608
+OP_BEQ              1524
+OP_BRA              14F8
+OP_BSR              150E
+OP_CHECK_SIZE       1670
+OP_CHECK_SIZE_ADDA  16B2
+OP_CLR              14D6
+OP_CMP              157A
+OP_CMPI             13D0
 OP_DATA_CLR         10A0
 OP_DATA_CLR_LOOP    10AC
-OP_DIVS             1542
-OP_DIVU             1528
-OP_EOR              157A
-OP_EORI             13A6
-OP_EXT              14BE
+OP_DIVS             155E
+OP_DIVU             1544
+OP_EOR              1596
+OP_EORI             13AE
+OP_EXT              14D6
 OP_FINISH           109A
-OP_JMP              14BE
-OP_JSR              14BE
-OP_LEA              14A8
-OP_LSL              1608
-OP_LSR              1608
-OP_MOVEAL           1408
-OP_MOVEAW           1450
-OP_MOVEB            13E6
-OP_MOVEL            142E
-OP_MOVEM            14A8
-OP_MOVEM_M2R        162C
-OP_MOVEM_R2M        1608
-OP_MOVEQ            150A
-OP_MOVEW            1476
-OP_MULS             1594
-OP_MULU             157A
-OP_NOP              1498
-OP_NOT              14BE
-OP_OR               1542
+OP_JMP              14D6
+OP_JSR              14D6
+OP_LEA              14BE
+OP_LSL              1624
+OP_LSR              1624
+OP_MOVEAL           1416
+OP_MOVEAW           1462
+OP_MOVEB            13F2
+OP_MOVEL            143E
+OP_MOVEM            14BE
+OP_MOVEM_M2R        164A
+OP_MOVEM_R2M        1624
+OP_MOVEQ            1524
+OP_MOVEW            148A
+OP_MULS             15B0
+OP_MULU             1596
+OP_NOP              14AE
+OP_NOT              14D6
+OP_OR               155E
 OP_ORI              132A
-OP_ROL              1608
-OP_ROR              1608
-OP_RTE              14BE
-OP_RTS              14BE
-OP_SIZE_BYTE        1674
-OP_SIZE_LONG        1688
-OP_SIZE_WORD        167E
+OP_ROL              1624
+OP_ROR              1624
+OP_RTE              14D6
+OP_RTS              14D6
+OP_SIZE_BYTE        1694
+OP_SIZE_LONG        16A8
+OP_SIZE_WORD        169E
 OP_START            1068
-OP_STOP             14BE
-OP_SUB              1542
-OP_SUBI             1366
-OP_SUBQ             14DE
+OP_STOP             14D6
+OP_SUB              155E
+OP_SUBI             136A
+OP_SUBQ             14F8
 OP_TABLE            10B6
-OP_TRAP             14BE
-OP_UNSUPPORTED_OPCODE  1650
+OP_TRAP             14D6
+OP_UNSUPPORTED_OPCODE  1670
 RIGHT1              1
 RIGHT10             A
 RIGHT12             C
@@ -1291,6 +1506,6 @@ RIGHT9              9
 STACK               A0000
 START               1000
 START_DECODING      105E
-VALIDATE_BEGINNING  177A
+VALIDATE_BEGINNING  179A
 WELCOME             1006
-WELCOME_MESSAGE     177C
+WELCOME_MESSAGE     1824

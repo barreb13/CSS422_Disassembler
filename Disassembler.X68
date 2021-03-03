@@ -1,7 +1,7 @@
 *-----------------------------------------------------------
-* Title      : Disassembler V1.6
+* Title      : Disassembler V1.7
 * Written by : Brent and Parker
-* Date       : 2/27/21
+* Date       : 3/2/21
 * Description: Final Project for CSS 422
 *-----------------------------------------------------------
 
@@ -28,6 +28,25 @@ right12             EQU     12      ;shift 12 to extract 3rd byte
 right16             EQU     16      ;shift 16 to extract 2nd byte
 right24             EQU     24      ;shift 24 to extract 1st byte
 dest_mode           EQU     $01C0   ; --> 0000 0001 1100 0000 (used for destination in MOVE/MOVEA
+
+
+ea_type_immediate   EQU     0
+ea_type_move        EQU     1
+ea_type_movea       EQU     2
+ea_type_movea6      EQU     12
+ea_type_lea         EQU     3
+ea_type_destonly    EQU     4
+ea_type_ext         EQU     5
+ea_type_movem       EQU     6
+ea_type_trap        EQU     7
+ea_type_quick       EQU     8
+ea_type_branch      EQU     9
+
+;flags???
+
+
+
+
 
     ORG    $1000
 START:                              ;first instruction of program
@@ -485,7 +504,7 @@ OP_ORI:
     ;call OP_CHECK_SIZE to append a .b/.w/.l
     JSR     OP_CHECK_SIZE
     
-    ;SOMETHING EXTRA FOR IMMEDIATE VALUE????
+    MOVE.L  #ea_type_immediate, D1              ;preps for EA_START and puts 0 into D1
 
     JSR     EA_START
     JMP     OP_FINISH
@@ -499,7 +518,7 @@ OP_ANDI:  ;(optional)
     ;call OP_CHECK_SIZE to append a .b/.w/.l
     JSR     OP_CHECK_SIZE
     
-    ;SOMETHING EXTRA FOR IMMEDIATE VALUE????
+    MOVE.L  #ea_type_immediate, D1              ;preps for EA_START and puts 0 into D1
 
     JSR     EA_START
     JMP     OP_FINISH
@@ -514,7 +533,7 @@ OP_SUBI:  ;(optional)
     ;call OP_CHECK_SIZE to append a .b/.w/.l
     JSR     OP_CHECK_SIZE
     
-    ;SOMETHING EXTRA FOR IMMEDIATE VALUE????
+    MOVE.L  #ea_type_immediate, D1              ;preps for EA_START and puts 0 into D1
 
     JSR     EA_START
     JMP     OP_FINISH
@@ -529,7 +548,7 @@ OP_ADDI:  ;(optional)
     ;call OP_CHECK_SIZE to append a .b/.w/.l
     JSR     OP_CHECK_SIZE
    
-    ;SOMETHING EXTRA FOR IMMEDIATE VALUE????
+    MOVE.L  #ea_type_immediate, D1              ;preps for EA_START and puts 0 into D1
 
     JSR     EA_START
     JMP     OP_FINISH
@@ -544,7 +563,7 @@ OP_EORI:  ;(optional)
     ;call OP_CHECK_SIZE to append a .b/.w/.l
     JSR     OP_CHECK_SIZE
     
-    ;SOMETHING EXTRA FOR IMMEDIATE VALUE????
+    MOVE.L  #ea_type_immediate, D1              ;preps for EA_START and puts 0 into D1
     
     JSR     EA_START
     JMP     OP_FINISH
@@ -560,7 +579,7 @@ OP_CMPI:  ;(optional)
     ;call OP_CHECK_SIZE to append a .b/.w/.l
     JSR     OP_CHECK_SIZE
 
-    ;SOMETHING EXTRA FOR IMMEDIATE VALUE????
+    MOVE.L  #ea_type_immediate, D1              ;preps for EA_START and puts 0 into D1
 
     JSR     EA_START
     JMP     OP_FINISH
@@ -574,6 +593,8 @@ OP_MOVEB:
     MOVE.B  #'.', (A2)+
     MOVE.B  #'B', (A2)+
     
+    MOVE.L  #ea_type_move, D1                   ;preps for EA_START and puts 1 into D1
+    
     JSR     EA_START
     JMP     OP_FINISH
 
@@ -586,6 +607,8 @@ OP_MOVEAL:
     MOVE.B  #'.', (A2)+
     MOVE.B  #'L', (A2)+
     
+    MOVE.L  #ea_type_movea, D1                   ;preps for EA_START and puts 2 into D1
+    
     JSR     EA_START
     JMP     OP_FINISH
 
@@ -596,6 +619,8 @@ OP_MOVEL:
     MOVE.B  #'E', (A2)+
     MOVE.B  #'.', (A2)+
     MOVE.B  #'L', (A2)+
+    
+    MOVE.L  #ea_type_move, D1                   ;preps for EA_START and puts 1 into D1
     
     JSR     EA_START
     JMP     OP_FINISH
@@ -610,6 +635,8 @@ OP_MOVEAW:
     MOVE.B  #'.', (A2)+
     MOVE.B  #'W', (A2)+
     
+    MOVE.L  #ea_type_movea, D1                   ;preps for EA_START and puts 2 into D1
+    
     JSR     EA_START
     JMP     OP_FINISH
 
@@ -621,6 +648,8 @@ OP_MOVEW:
     MOVE.B  #'E', (A2)+
     MOVE.B  #'.', (A2)+
     MOVE.B  #'W', (A2)+
+    
+    MOVE.L  #ea_type_move, D1                   ;preps for EA_START and puts 1 into D1
     
     JSR     EA_START
     JMP     OP_FINISH
@@ -635,14 +664,16 @@ OP_NOP:
 
 
 OP_MOVEM:
-
+    ;see movemd2r or movemr2d... see below at bottom
 
 
 OP_LEA:
     MOVE.B  #'L', (A2)+
     MOVE.B  #'E', (A2)+
     MOVE.B  #'A', (A2)+
-
+    
+    MOVE.L  #ea_type_lea, D1                   ;preps for EA_START and puts 3 into D1
+    
     JSR     EA_START
     JMP     OP_FINISH
 
@@ -691,6 +722,8 @@ OP_ADDQ:
     ;call OP_CHECK_SIZE to append a .b/.w/.l
     JSR     OP_CHECK_SIZE
 
+    MOVE.L  #ea_type_quick, D1                   ;preps for EA_START and puts 8 into D1
+
     JSR     EA_START
     JMP     OP_FINISH
 
@@ -728,6 +761,8 @@ OP_MOVEQ:
     MOVE.B  #'Q', (A2)+
     
     ;DO WE NEED A .L ?
+    
+    MOVE.L  #ea_type_quick, D1                   ;preps for EA_START and puts 8 into D1
     
     JSR     EA_START
     JMP     OP_FINISH
@@ -880,6 +915,8 @@ OP_MOVEM_R2M:
     ;call OP_CHECK_SIZE to append a .b/.w/.l
     JSR     OP_CHECK_SIZE
     
+    MOVE.L  #ea_type_movem, D1                   ;preps for EA_START and puts 6 into D1
+    
     JSR     EA_START
     JMP     OP_FINISH
 
@@ -893,6 +930,8 @@ OP_MOVEM_M2R:
     
     ;call OP_CHECK_SIZE to append a .b/.w/.l
     JSR     OP_CHECK_SIZE
+    
+    MOVE.L  #ea_type_movem, D1                   ;preps for EA_START and puts 6 into D1
     
     JSR     EA_START
     JMP     OP_FINISH
@@ -1108,18 +1147,165 @@ VALIDATE_BEGINNING:
 ;****************************************** EA Stuff ***************************************************** 
 
 EA_START:
-    RTS
+    LEA         EA_TYPE_TABLE, A0
+    
+    MULU        #6,D1               ;computes opcode table jump displacement
+    JMP         0(A0,D1)            ;jump to correct table input
+
+
+EA_TYPE_TABLE:
+    JMP         EA_IMMEDIATE
+    JMP         EA_MOVE
+    JMP         EA_MOVEA
+    JMP         EA_LEA
+    JMP         EA_DESTONLY
+    JMP         EA_EXT
+    JMP         EA_MOVEM
+    JMP         EA_TRAP
+    JMP         EA_QUICK
+    JMP         EA_BRANCH
+    JMP         EA_FINISH
+
+EA_FINISH:
+    RTS ; TAKE OUT LATER
+    
+
+
+;********************************************  EA_TYPE  ****************************************************   
+
+EA_IMMEDIATE:
+
+
+
+;D4 = mode
+;D5 = register    
+EA_MOVE:
+    ;LEA    EA_MODE_TABLE,A0
+    
+    ;source mode are bits 3,4,5   |    ;source register are bits 0,1,2
+    ;isolate source mode        000 - 111
+    ;store source moe in D4
+    ;MULU   #6,D4
+    ;isolate source register    000 - 111
+    ;store source register in D5    
+    ;JMP    0(A0,D4)
+   
+    ;add a ',' to buffer
+    ;at this point buffer would be "00000400    MOVE.B D7,"    
+    
+    
+    
+    ;isolate DESTINATION mode        000 - 111
+    ;store DESTINATION moe in D4
+    ;MULU   #6,D4
+    ;isolate DESTINATION register    000 - 111
+    ;store DESTINATION register in D5    
+    ;JMP    0(A0,D4)
+
+
+    ;at this point buffer would be "00000400    MOVE.B D7,D2"
+
+    ;JMP EA_FINISH
+
+
+EA_MOVEA:
+
+
+
+
+EA_LEA:
 
 
 
 
 
+EA_DESTONLY:
 
 
 
 
 
+EA_EXT:
 
+
+
+
+
+EA_MOVEM:
+
+
+
+
+EA_TRAP:
+
+
+
+
+
+EA_QUICK:
+
+
+
+
+EA_BRANCH:
+
+
+
+
+;********************************************  EA_MODE_TABLE  ****************************************************  
+EA_MODE_TABLE:
+    JMP     EA_MODE_000
+    JMP     EA_MODE_001
+    JMP     EA_MODE_010
+    JMP     EA_MODE_011
+    JMP     EA_MODE_100
+    JMP     EA_MODE_101
+    JMP     EA_MODE_110
+    JMP     EA_MODE_111
+
+
+;********************************************  EA_MODE_XXX  ****************************************************    
+EA_MODE_000:
+    ;add a 'D' to buffer
+    ;MOVE.B D5,D3
+    ;JSR convert D3 to ASCII (EA_HEX_TO_ASCII)which puts on buffer  
+    ;RTS
+
+    
+    
+EA_MODE_001:
+
+
+
+EA_MODE_010:
+
+
+
+EA_MODE_011:        ;"(An)+"
+
+
+
+EA_MODE_100:
+
+
+
+EA_MODE_101:
+
+
+
+EA_MODE_110:
+
+
+
+EA_MODE_111:        
+    
+    
+    
+
+EA_HEX_TO_ASCII
+    ADDI.B      #$30,D3                     ;add $30 to D1 to convert
+    MOVE.B      D1,(A2)+                    ;add to buffer and increment to next position
+    RTS     
     
 ;****************************************** MESSAGES ***************************************************
 welcome_message         DC.B    'Welcome to 68k disassembler',CR,LF,0
@@ -1141,6 +1327,7 @@ buffer                  ;storing op code
     
 
     END    START        ; last line of source
+
 
 
 
