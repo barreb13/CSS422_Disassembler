@@ -1,7 +1,7 @@
 *-----------------------------------------------------------
-* Title      : Disassembler V1.7
+* Title      : Disassembler V1.8(ish)
 * Written by : Brent and Parker
-* Date       : 3/2/21
+* Date       : 3/4/21
 * Description: Final Project for CSS 422
 *-----------------------------------------------------------
 
@@ -458,38 +458,41 @@ OP_0110_TABLE:
 
 
 ;OP_0111_TABLE:
-
+;implement later if needed
 
 
 ;OP_1000_TABLE:
-
+;implement later if needed
 
 
 ;OP_1001_TABLE:
+;implement later if needed
 
 
-
-OP_1010_TABLE:
-
-
-
-OP_1011_TABLE:
+;OP_1010_TABLE:
+;implement later if needed
 
 
-
-OP_1100_TABLE:
-
-
-
-OP_1101_TABLE:
+;OP_1011_TABLE:
+;implement later if needed
 
 
+;OP_1100_TABLE:
+;implement later if needed
 
-OP_1110_TABLE:
+
+;OP_1101_TABLE:
+;implement later if needed
 
 
+;OP_1110_TABLE:
+;implement later if needed
 
-OP_1111_TABLE:
+
+;OP_1111_TABLE:
+;implement later if needed
+
+
 
 
 ;******************************** OP_INSTRUCTION_XXXX******************************************
@@ -678,39 +681,39 @@ OP_LEA:
     JMP     OP_FINISH
 
 OP_CLR:  ;(optional)
-
+;implement later if needed
 
 
 OP_NOT:  ;(optional)
-
+;implement later if needed
 
 
 OP_EXT:  ;(optional)
-
+;implement later if needed
 
 
 OP_TRAP:  ;(optional)
-
+;implement later if needed
 
  
 OP_STOP:  ;(optional)
-
+;implement later if needed
 
 
 OP_RTE:  ;(optional)
-
+;implement later if needed
 
 
 OP_RTS:  ;(optional)
-
+;implement later if needed
 
 
 OP_JSR:  ;(optional)
-
+;implement later if needed
 
 
 OP_JMP:  ;(optional)
-
+;implement later if needed
 
 
 OP_ADDQ:
@@ -728,7 +731,7 @@ OP_ADDQ:
     JMP     OP_FINISH
 
 OP_SUBQ:  ;(optional)
-
+;implement later if needed
 
 
 OP_BRA:                                     ;???? DO WE DEFINE SIZE HERE OR AFTER????
@@ -750,7 +753,7 @@ OP_BSR:
 
 
 OP_BEQ:
-
+;implement later if needed
 
 
 OP_MOVEQ:
@@ -781,11 +784,11 @@ OP_DIVU:
 
 
 OP_DIVS  ;(optional)
-
+;implement later if needed
 
 
 OP_OR  ;(optional)
-
+;implement later if needed
 
 
 OP_SUB:
@@ -819,7 +822,7 @@ OP_CMP:
 
 
 OP_EOR:  ;(optional)
-
+;implement later if needed
 
 
 OP_MULU:
@@ -832,11 +835,11 @@ OP_MULU:
     JMP     OP_FINISH    
 
 OP_MULS:  ;(optional)
-
+;implement later if needed
 
 
 OP_AND:  ;(optional)
-
+;implement later if needed
 
 
 OP_ADD:
@@ -887,21 +890,22 @@ OP_ASR:
     JMP     OP_FINISH
 
 OP_LSL:  ;(optional)
-
+;implement later if needed
 
 
 
 OP_LSR:  ;(optional)
-
+;implement later if needed
 
 
 
 OP_ROL:  ;(optional)
-
+;implement later if needed
 
 
 
 OP_ROR:  ;(optional)
+;implement later if needed
 
 
 
@@ -938,7 +942,7 @@ OP_MOVEM_M2R:
 
 
 OP_UNSUPPORTED_OPCODE:
-
+;fill out
 
 ;D0 HAS COMPLETE INSTRUCTION
 OP_CHECK_SIZE:
@@ -1144,7 +1148,7 @@ VALIDATE_BEGINNING:
 
 
 
-;****************************************** EA Stuff ***************************************************** 
+;****************************************** EA Stuff **************************************************************************************************************************** 
 
 EA_START:
     LEA         EA_TYPE_TABLE, A0
@@ -1155,7 +1159,7 @@ EA_START:
 
 EA_TYPE_TABLE:
     JMP         EA_IMMEDIATE
-    JMP         EA_MOVE
+    JMP         EA_MOVE             ;DONE
     JMP         EA_MOVEA
     JMP         EA_LEA
     JMP         EA_DESTONLY
@@ -1173,39 +1177,65 @@ EA_FINISH:
 
 ;********************************************  EA_TYPE  ****************************************************   
 
-EA_IMMEDIATE:
+EA_IMMEDIATE:                           ;value 0                ;    0001 0001                 11      ORI.B   #$1,D1
+    MOVE.B  #$09, (A2)+             ;adds a ' ' to buffer
+    MOVE.B  #'#',(A2)+              ;add a # to buffer
+    MOVE.B  #'$',(A2)+              ;add a $ to buffer
+    ;buffer will have 'ORI.B #$'
+    
+    ;check size which is bits 6,7 and store in D6
+    ;get immediate value from memory based off size and store in D7
+    JSR     EA_CHECK_SIZE
+    
+    ;at this point our size is in D6 and data is in D7 and memory has been advanced
+    ;convert immediate data to ascii and put on buffer
+    JSR     EA_ITOA_IMMEDIATE
+    
+    
+    ;isolate source mode - bits 5,4,3 and store in D4
+    ;isolate source register - bits 2,1,0 and store in D5
 
 
 
-;D4 = mode
-;D5 = register    
+;D4 = mode      --> source / destination
+;D5 = register  --> source / destination   
 EA_MOVE:
-    ;LEA    EA_MODE_TABLE,A0
+    MOVE.B  #$09, (A2)+             ;adds a ' ' to buffer
+    LEA     EA_MODE_TABLE,A0             ;load table
     
     ;source mode are bits 3,4,5   |    ;source register are bits 0,1,2
-    ;isolate source mode        000 - 111
-    ;store source moe in D4
-    ;MULU   #6,D4
-    ;isolate source register    000 - 111
-    ;store source register in D5    
-    ;JMP    0(A0,D4)
-   
-    ;add a ',' to buffer
-    ;at this point buffer would be "00000400    MOVE.B D7,"    
     
+    ;isolate source mode
+    MOVE.L  D0,D4
+    LSR.W   #3,D4
+    ANDI.W  #$7,D4
+    MULU    #6,D4
+        
+    ;isolate source register
+    MOVE.L  D0,D5
+    ANDI.W  #$7,D5
     
+    JSR    EA_JMP_HELPER
+    MOVE.B  #',',(A2)+                  ;add ',' to buffer  
     
-    ;isolate DESTINATION mode        000 - 111
-    ;store DESTINATION moe in D4
-    ;MULU   #6,D4
-    ;isolate DESTINATION register    000 - 111
-    ;store DESTINATION register in D5    
-    ;JMP    0(A0,D4)
+    ;isolate destination mode
+    MOVE.L  D0,D4
+    LSR.W   #6,D4
+    ANDI.W  #$7,D4
+    MULU    #6,D4
+    
+    ;isolate destination register 
+    MOVE.L  D0,D5
+    LSR.W   #4,D5
+    LSR.W   #5,D5                       ;HAVE TO BREAK UP SHIFT TO STAY UNDER 8????
+    ANDI.W  #$7,D5   
+    JSR    EA_JMP_HELPER
 
+    JMP EA_FINISH
 
-    ;at this point buffer would be "00000400    MOVE.B D7,D2"
-
-    ;JMP EA_FINISH
+EA_JMP_HELPER
+    JMP     0(A0,D4)
+    
 
 
 EA_MOVEA:
@@ -1262,37 +1292,53 @@ EA_MODE_TABLE:
     JMP     EA_MODE_101
     JMP     EA_MODE_110
     JMP     EA_MODE_111
-
+    ;JMP     EA_MODE_FINISH
 
 ;********************************************  EA_MODE_XXX  ****************************************************    
-EA_MODE_000:
-    ;add a 'D' to buffer
-    ;MOVE.B D5,D3
-    ;JSR convert D3 to ASCII (EA_HEX_TO_ASCII)which puts on buffer  
-    ;RTS
-
+EA_MODE_000:                                        ;Data register 'Dn'
+    MOVE.B  #'D',(A2)+                              ;put D on buffer
+    MOVE.B D5,D3                                    ;move to d3 for conversion
+    JSR     EA_HEX_TO_ASCII                         ;puts register on buffer  
+    RTS
     
+EA_MODE_001:                                        ;Address Register 'An'
+    MOVE.B  #'A',(A2)+                              ;put A on buffer
+    MOVE.B  D5,D3                                   ;move to d3 for conversion
+    JSR     EA_HEX_TO_ASCII                         ;puts register on buffer  
+    RTS
+
+EA_MODE_010:                                        ;Address direct --> '(An)'
+    MOVE.B  #'(',(A2)+                              ;put ( on buffer
+    MOVE.B  #'A',(A2)+                              ;put A on buffer
+    MOVE.B  D5,D3                                   ;move to D3 for conversion
+    JSR     EA_HEX_TO_ASCII                         ;convert and put on buffer   
+    MOVE.B  #')',(A2)+                              ;put ) on buffer
+    RTS
+
+EA_MODE_011:                                        ;Address with Postincrement --> '(An)+' 
+    MOVE.B  #'(',(A2)+                              ;put ( on buffer
+    MOVE.B  #'A',(A2)+                              ;put A on buffer
+    MOVE.B  D5,D3                                   ;move to D3 for conversion
+    JSR     EA_HEX_TO_ASCII                         ;convert and put on buffer   
+    MOVE.B  #')',(A2)+                              ;put ) on buffer
+    MOVE.B  #'+',(A2)+                              ;put + on buffer
+    RTS
+
+EA_MODE_100:                                        ;Address with Predecrement --> '-(An)'
+    MOVE.B  #'-',(A2)+                              ;put - on buffer
+    MOVE.B  #'(',(A2)+                              ;put ( on buffer
+    MOVE.B  #'A',(A2)+                              ;put A on buffer
+    MOVE.B  D5,D3                                   ;move to D3 for conversion
+    JSR     EA_HEX_TO_ASCII                         ;convert and put on buffer   
+    MOVE.B  #')',(A2)+                              ;put ) on buffer
+
+
+
+;unsupported
+EA_MODE_101:                                        
+;Address with Displacement --> '(d16, An)
     
-EA_MODE_001:
-
-
-
-EA_MODE_010:
-
-
-
-EA_MODE_011:        ;"(An)+"
-
-
-
-EA_MODE_100:
-
-
-
-EA_MODE_101:
-
-
-
+;unsupported
 EA_MODE_110:
 
 
@@ -1302,10 +1348,101 @@ EA_MODE_111:
     
     
 
-EA_HEX_TO_ASCII
+EA_HEX_TO_ASCII:
     ADDI.B      #$30,D3                     ;add $30 to D1 to convert
-    MOVE.B      D1,(A2)+                    ;add to buffer and increment to next position
+    MOVE.B      D3,(A2)+                    ;add to buffer and increment to next position
     RTS     
+
+
+EA_CHECK_SIZE:
+    CLR     D6
+    MOVE.L  D0,D6                           ;complete opcode --> D6
+    ANDI.W  #nibble3,D6                     ;isolating nibble 3
+    LSR.W   #right6,D6                      ;shifting bits 7,6 --> 1,0
+    
+    CMP     #00,D6
+    BEQ     EA_SIZE_BYTE
+    CMP     #01,D6
+    BEQ     EA_SIZE_WORD
+    BRA     EA_SIZE_LONG
+
+EA_SIZE_BYTE:
+    MOVE.W  (A5)+,D7
+    ;MOVE.B  #4,D3;                          SET UP COUNTER
+    RTS
+
+EA_SIZE_WORD:
+    MOVE.W  (A5)+,D7
+    ;MOVE.B  #4,D3;                          SET UP COUNTER
+    RTS
+
+EA_SIZE_LONG:
+    MOVE.L  (A5)+,D7
+    ;MOVE.B  #8,D3;                          SET UP COUNTER
+    RTS
+
+
+
+EA_ITOA_IMMEDIATE:
+    ;D3 = counter, D7 = value to be converted, D6 = size
+    CMP.B   #%00,D6
+    BEQ     EA_ITOA_BYTE
+    CMP.B   #%01,D6
+    BEQ     EA_ITOA_WORD
+    CMP.B   #%10,D6
+    BEQ     EA_ITOA_LONG
+    
+
+;EA_IT0A_IMMEDIATE_LOOP
+;    CMP.B   #0,D3                       ;check if loop done
+;    BEQ     EA_ITOA_FINISH              ;if = 0, loop done
+    
+EA_ITOA_BYTE:
+    JSR     EA_ITOA_BYTE_CONVERT
+    JMP     EA_ITOA_DONE
+
+
+EA_ITOA_WORD:
+    LSR.W   #right8,D7
+    
+
+EA_ITOA_LONG:
+
+
+
+EA_ITOA_BYTE_CONVERT:
+    MOVE.W  D7,D3
+    ANDI.W  #$F0,D3
+    LSR.W   #right4, D3
+    JSR     EA_ITOA_NIBBLE_CONVERT
+    
+    MOVE.W  D7,D3
+    ANDI.W  #$0F,D0
+    JSR     EA_ITOA_NIBBLE_CONVERT
+    RTS
+
+EA_ITOA_NIBBLE_CONVERT:
+    CMP.B   #9,D3
+    BGT     EA_ITOA_LETTER
+    BRA     EA_ITOA_NUMBER
+
+EA_ITOA_HEX2ASCII:
+
+
+
+EA_ITOA_NUMBER:
+    ADDI.B  #$30,D3
+    MOVE.B  D3,(A2)+
+    RTS
+
+EA_ITOA_LETTER:
+    ADDI.B  #$37,D3
+    MOVE.B  D3,(A2)+
+    RTS
+
+EA_ITOA_DONE
+
+
     
 ;****************************************** MESSAGES ***************************************************
 welcome_message         DC.B    'Welcome to 68k disassembler',CR,LF,0
@@ -1327,6 +1464,8 @@ buffer                  ;storing op code
     
 
     END    START        ; last line of source
+
+
 
 
 
