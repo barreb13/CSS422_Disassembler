@@ -423,11 +423,11 @@ OP_0100_TABLE:
     jmp OP_LEA                                          ;5      (address 0101)
     jmp OP_UNSUPPORTED_OPCODE                           ;6 
     jmp OP_LEA                                          ;7      (address 0111) 
-    jmp OP_MOVEM_R2M                                    ;8 
+    jmp OP_MOVEM                                        ;8                          ;jmp OP_MOVEM_R2M
     jmp OP_LEA                                          ;9      (address 1001) 
     jmp OP_UNSUPPORTED_OPCODE                           ;10 
     jmp OP_LEA                                          ;11     (address 1011) 
-    jmp OP_MOVEM_M2R                                    ;12 
+    jmp OP_MOVEM                                        ;12                         ;jmp OP_MOVEM_M2R    
     jmp OP_LEA                                          ;13     (address 1101)
     jmp OP_NOP                                          ;14
     jmp OP_LEA                                          ;15     (address 1111)
@@ -667,8 +667,21 @@ OP_NOP:
 
 
 OP_MOVEM:
-    ;see movemd2r or movemr2d... see below at bottom
-
+    ;see movemd2r or movemr2d... see below at bottom ?????
+    
+    MOVE.B  #'M', (A2)+
+    MOVE.B  #'O', (A2)+
+    MOVE.B  #'V', (A2)+
+    MOVE.B  #'E', (A2)+
+    MOVE.B  #'M', (A2)+
+    
+    ;call OP_CHECK_SIZE to append a .b/.w/.l
+    JSR     OP_CHECK_SIZE
+    
+    MOVE.L  #ea_type_movem, D1                   ;preps for EA_START and puts 6 into D1
+    
+    JSR     EA_START
+    JMP     OP_FINISH
 
 OP_LEA:
     MOVE.B  #'L', (A2)+
@@ -909,36 +922,36 @@ OP_ROR:  ;(optional)
 
 
 
-OP_MOVEM_R2M:
-    MOVE.B  #'M', (A2)+
-    MOVE.B  #'O', (A2)+
-    MOVE.B  #'V', (A2)+
-    MOVE.B  #'E', (A2)+
-    MOVE.B  #'M', (A2)+
+;OP_MOVEM_R2M:
+;    MOVE.B  #'M', (A2)+
+;    MOVE.B  #'O', (A2)+
+;    MOVE.B  #'V', (A2)+
+;    MOVE.B  #'E', (A2)+
+;    MOVE.B  #'M', (A2)+
     
-    ;call OP_CHECK_SIZE to append a .b/.w/.l
-    JSR     OP_CHECK_SIZE
+;    ;call OP_CHECK_SIZE to append a .b/.w/.l
+;    JSR     OP_CHECK_SIZE
     
-    MOVE.L  #ea_type_movem, D1                   ;preps for EA_START and puts 6 into D1
+;    MOVE.L  #ea_type_movem, D1                   ;preps for EA_START and puts 6 into D1
     
-    JSR     EA_START
-    JMP     OP_FINISH
+;    JSR     EA_START
+;    JMP     OP_FINISH
 
 
-OP_MOVEM_M2R:
-    MOVE.B  #'M', (A2)+
-    MOVE.B  #'O', (A2)+
-    MOVE.B  #'V', (A2)+
-    MOVE.B  #'E', (A2)+
-    MOVE.B  #'M', (A2)+
+;OP_MOVEM_M2R:
+;    MOVE.B  #'M', (A2)+
+;    MOVE.B  #'O', (A2)+
+;    MOVE.B  #'V', (A2)+
+;    MOVE.B  #'E', (A2)+
+;    MOVE.B  #'M', (A2)+
     
-    ;call OP_CHECK_SIZE to append a .b/.w/.l
-    JSR     OP_CHECK_SIZE
+;    ;call OP_CHECK_SIZE to append a .b/.w/.l
+;    JSR     OP_CHECK_SIZE
     
-    MOVE.L  #ea_type_movem, D1                   ;preps for EA_START and puts 6 into D1
+;    MOVE.L  #ea_type_movem, D1                   ;preps for EA_START and puts 6 into D1
     
-    JSR     EA_START
-    JMP     OP_FINISH
+;    JSR     EA_START
+;    JMP     OP_FINISH
 
 
 OP_UNSUPPORTED_OPCODE:
@@ -1158,10 +1171,10 @@ EA_START:
 
 
 EA_TYPE_TABLE:
-    JMP         EA_IMMEDIATE
+    JMP         EA_IMMEDIATE        ;DONE
     JMP         EA_MOVE             ;DONE
-    JMP         EA_MOVEA
-    JMP         EA_LEA
+    JMP         EA_MOVEA            ;DONE
+    JMP         EA_LEA              ;COME BACK TO AFTER TALKING WITH PROFESSOR ABOUT MODE 111
     JMP         EA_DESTONLY
     JMP         EA_EXT
     JMP         EA_MOVEM
@@ -1177,11 +1190,10 @@ EA_FINISH:
 
 ;********************************************  EA_TYPE  ****************************************************   
 
-EA_IMMEDIATE:                           ;value 0                ;    0001 0001                 11      ORI.B   #$1,D1
-    MOVE.B  #$09, (A2)+             ;adds a ' ' to buffer
-    MOVE.B  #'#',(A2)+              ;add a # to buffer
-    MOVE.B  #'$',(A2)+              ;add a $ to buffer
-    ;buffer will have 'ORI.B #$'
+EA_IMMEDIATE:                               ;value 0
+    MOVE.B  #$09, (A2)+                     ;adds a ' ' to buffer
+    MOVE.B  #'#',(A2)+                      ;add a # to buffer
+    MOVE.B  #'$',(A2)+                      ;add a $ to buffer
     
     ;check size which is bits 6,7 and store in D6
     ;get immediate value from memory based off size and store in D7
@@ -1191,19 +1203,32 @@ EA_IMMEDIATE:                           ;value 0                ;    0001 0001  
     ;convert immediate data to ascii and put on buffer
     JSR     EA_ITOA_IMMEDIATE
     
+    LEA     EA_MODE_TABLE,A0                ;load table
+    MOVE.B  #',',(A2)+                      ;add a # to buffer
+    MOVE.B  #$09, (A2)+                     ;adds a ' ' to buffer
     
-    ;isolate source mode - bits 5,4,3 and store in D4
-    ;isolate source register - bits 2,1,0 and store in D5
+    ;source mode are bits 3,4,5   |         ;source register are bits 0,1,2
+    
+    ;isolate source mode - bits 3,4,5 and store in D4
+    MOVE.L  D0,D4
+    LSR.W   #3,D4
+    ANDI.W  #$7,D4
+    MULU    #6,D4
+    
+    ;isolate source register - bits 0,1,2 and store in D5
+    MOVE.L  D0,D5
+    ANDI.W  #$7,D5
 
-
+    JSR     EA_JMP_HELPER
+    JMP     EA_FINISH
 
 ;D4 = mode      --> source / destination
 ;D5 = register  --> source / destination   
 EA_MOVE:
-    MOVE.B  #$09, (A2)+             ;adds a ' ' to buffer
-    LEA     EA_MODE_TABLE,A0             ;load table
+    MOVE.B  #$09, (A2)+                     ;adds a ' ' to buffer
+    LEA     EA_MODE_TABLE,A0                ;load table
     
-    ;source mode are bits 3,4,5   |    ;source register are bits 0,1,2
+    ;source mode are bits 3,4,5   |         ;source register are bits 0,1,2
     
     ;isolate source mode
     MOVE.L  D0,D4
@@ -1229,27 +1254,67 @@ EA_MOVE:
     LSR.W   #4,D5
     LSR.W   #5,D5                       ;HAVE TO BREAK UP SHIFT TO STAY UNDER 8????
     ANDI.W  #$7,D5   
-    JSR    EA_JMP_HELPER
+    JSR     EA_JMP_HELPER
 
-    JMP EA_FINISH
-
-EA_JMP_HELPER
-    JMP     0(A0,D4)
+    JMP     EA_FINISH
     
 
-
 EA_MOVEA:
+    MOVE.B  #$09, (A2)+                     ;adds a ' ' to buffer
+    LEA     EA_MODE_TABLE,A0                ;load table
 
+    ;source mode are bits 3,4,5   |         ;source register are bits 0,1,2
+    
+    ;isolate source mode
+    MOVE.L  D0,D4
+    LSR.W   #3,D4
+    ANDI.W  #$7,D4
+    MULU    #6,D4
+        
+    ;isolate source register
+    MOVE.L  D0,D5
+    ANDI.W  #$7,D5
+    
+    JSR    EA_JMP_HELPER
+    MOVE.B  #',',(A2)+                  ;add ',' to buffer
+    
+    ;isolate destination mode --> SHOULD ALWAYS BE 001 AND GO TO ADDRESS REGISTER
+    MOVE.L  D0,D4
+    LSR.W   #6,D4
+    ANDI.W  #$7,D4
+    MULU    #6,D4
+    
+    ;isolate destination register 
+    MOVE.L  D0,D5
+    LSR.W   #4,D5
+    LSR.W   #5,D5                       ;HAVE TO BREAK UP SHIFT TO STAY UNDER 8????
+    ANDI.W  #$7,D5   
+    JSR     EA_JMP_HELPER
 
-
+    JMP     EA_FINISH
 
 EA_LEA:
+    MOVE.B  #$09, (A2)+                     ;adds a ' ' to buffer
+    LEA     EA_MODE_TABLE,A0                ;load table
+    
+    ;source mode are bits 3,4,5   |         ;source register are bits 0,1,2
+    
+    ;isolate source mode
+    MOVE.L  D0,D4
+    LSR.W   #3,D4
+    ANDI.W  #$7,D4
+    MULU    #6,D4
+        
+    ;isolate source register
+    MOVE.L  D0,D5
+    ANDI.W  #$7,D5
+    
+    JSR    EA_JMP_HELPER
+    MOVE.B  #',',(A2)+                  ;add ',' to buffer
+  
 
 
-
-
-
-EA_DESTONLY:
+EA_DESTONLY:        ;JMP, CLR
 
 
 
@@ -1262,7 +1327,25 @@ EA_EXT:
 
 
 EA_MOVEM:
+    MOVE.B  #$09, (A2)+                     ;adds a ' ' to buffer
+    LEA     EA_MODE_TABLE,A0                ;load table
+    
+    ;source mode are bits 3,4,5   |         ;source register are bits 0,1,2
+    
+    ;isolate source mode
+    MOVE.L  D0,D4
+    LSR.W   #3,D4
+    ANDI.W  #$7,D4
+    MULU    #6,D4
+        
+    ;isolate source register
+    MOVE.L  D0,D5
+    ANDI.W  #$7,D5
+    
+    JSR    EA_JMP_HELPER
+    MOVE.B  #',',(A2)+                  ;add ',' to buffer
 
+    
 
 
 
@@ -1280,6 +1363,9 @@ EA_QUICK:
 EA_BRANCH:
 
 
+
+EA_JMP_HELPER
+    JMP     0(A0,D4)
 
 
 ;********************************************  EA_MODE_TABLE  ****************************************************  
@@ -1341,8 +1427,6 @@ EA_MODE_101:
 ;unsupported
 EA_MODE_110:
 
-
-
 EA_MODE_111:        
     
     
@@ -1372,12 +1456,12 @@ EA_SIZE_BYTE:
     RTS
 
 EA_SIZE_WORD:
-    MOVE.W  (A5)+,D7
+    MOVE.W  (A5),D7
     ;MOVE.B  #4,D3;                          SET UP COUNTER
     RTS
 
 EA_SIZE_LONG:
-    MOVE.L  (A5)+,D7
+    MOVE.W  (A5),D7
     ;MOVE.B  #8,D3;                          SET UP COUNTER
     RTS
 
@@ -1399,25 +1483,40 @@ EA_ITOA_IMMEDIATE:
     
 EA_ITOA_BYTE:
     JSR     EA_ITOA_BYTE_CONVERT
+    
     JMP     EA_ITOA_DONE
 
 
 EA_ITOA_WORD:
     LSR.W   #right8,D7
+    JSR     EA_ITOA_BYTE_CONVERT
+    MOVE.W  (A5)+,D7
+    JSR     EA_ITOA_BYTE_CONVERT
     
-
+    JMP     EA_ITOA_DONE
+    
 EA_ITOA_LONG:
+    LSR.W   #right8,D7
+    JSR     EA_ITOA_BYTE_CONVERT
+    MOVE.W  (A5)+,D7
+    JSR     EA_ITOA_BYTE_CONVERT
 
+    MOVE.W  (A5),D7
+    LSR.W   #right8,D7
+    JSR     EA_ITOA_BYTE_CONVERT
+    MOVE.W  (A5)+,D7
+    JSR     EA_ITOA_BYTE_CONVERT
 
+    JMP     EA_ITOA_DONE
 
 EA_ITOA_BYTE_CONVERT:
     MOVE.W  D7,D3
     ANDI.W  #$F0,D3
-    LSR.W   #right4, D3
+    LSR.W   #right4,D3
     JSR     EA_ITOA_NIBBLE_CONVERT
     
     MOVE.W  D7,D3
-    ANDI.W  #$0F,D0
+    ANDI.W  #$0F,D3
     JSR     EA_ITOA_NIBBLE_CONVERT
     RTS
 
@@ -1441,7 +1540,7 @@ EA_ITOA_LETTER:
     RTS
 
 EA_ITOA_DONE
-
+    RTS
 
     
 ;****************************************** MESSAGES ***************************************************
@@ -1464,6 +1563,8 @@ buffer                  ;storing op code
     
 
     END    START        ; last line of source
+
+
 
 
 

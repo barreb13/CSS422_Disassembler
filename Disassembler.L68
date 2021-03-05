@@ -1,6 +1,6 @@
 00001000 Starting Address
 Assembler used: EASy68K Editor/Assembler v5.16.01
-Created On: 3/4/2021 12:03:21 PM
+Created On: 3/5/2021 11:28:53 AM
 
 00000000                             1  *-----------------------------------------------------------
 00000000                             2  * Title      : Disassembler V1.8(ish)
@@ -60,7 +60,7 @@ Created On: 3/4/2021 12:03:21 PM
 00001006                            56  
 00001006                            57  ;********************************** Welcome Message ******************************************** 
 00001006                            58  WELCOME:
-00001006  43F9 000018DA             59      LEA     welcome_message,A1      ;load the welcome message into A1
+00001006  43F9 00001A20             59      LEA     welcome_message,A1      ;load the welcome message into A1
 0000100C  103C 000E                 60      MOVE.B  #14,D0
 00001010  4E4F                      61      TRAP    #15                     ;print contents of welcome_message
 00001012                            62      
@@ -69,10 +69,10 @@ Created On: 3/4/2021 12:03:21 PM
 00001012                            65  ;*********************************** Get Starting Address *************************************** 
 00001012                            66  GET_STARTING_ADDRESS:
 00001012  103C 000E                 67      MOVE.B  #14,D0    
-00001016  43F9 000018F8             68      LEA     get_start_address,A1    ;load the get_start_address message into A1
+00001016  43F9 00001A3E             68      LEA     get_start_address,A1    ;load the get_start_address message into A1
 0000101C  4E4F                      69      TRAP    #15                     ;print get_start_address
 0000101E                            70      
-0000101E  43F9 00001984             71      LEA     ascii_start,A1          ;store
+0000101E  43F9 00001ACA             71      LEA     ascii_start,A1          ;store
 00001024  103C 0002                 72      MOVE.B  #2,D0                   ;get user input    
 00001028  4E4F                      73      TRAP    #15                     ;another trap to get input
 0000102A  4EB9 000016CE             74      JSR     ATOI                    ;address is now in hex format in memory location
@@ -82,24 +82,24 @@ Created On: 3/4/2021 12:03:21 PM
 00001030                            78      ;perform checks (later)
 00001030                            79      
 00001030                            80      
-00001030  2A39 00001984             81      MOVE.l    (ascii_start),D5      ;load into A5
+00001030  2A39 00001ACA             81      MOVE.l    (ascii_start),D5      ;load into A5
 00001036  2A45                      82      MOVE.l    D5,A5                ;load into A5
 00001038                            83  
 00001038                            84  
 00001038                            85  ;******************************** Get Ending Address ******************************************** 
 00001038                            86  GET_ENDING_ADDRESS: 
 00001038  103C 000E                 87      MOVE.B  #14,D0
-0000103C  43F9 00001929             88      LEA     get_end_address,A1      ;load the get_end_address message into A1  
+0000103C  43F9 00001A6F             88      LEA     get_end_address,A1      ;load the get_end_address message into A1  
 00001042  4E4F                      89      TRAP    #15                     ;print get_end_address
 00001044                            90      
-00001044  43F9 00001998             91      LEA     ascii_end,A1            ;store 
+00001044  43F9 00001ADE             91      LEA     ascii_end,A1            ;store 
 0000104A  103C 0002                 92      MOVE.B  #2,D0                   ;get user input
 0000104E  4E4F                      93      TRAP    #15                     ;another trap to get intput
 00001050  4EB9 000016CE             94      JSR ATOI
 00001056                            95  
 00001056                            96      ;perform checks (later)
 00001056                            97  
-00001056  2C39 00001998             98      MOVE.l    (ascii_end),D6      ;load into A6
+00001056  2C39 00001ADE             98      MOVE.l    (ascii_end),D6      ;load into A6
 0000105C  2C46                      99      MOVE.l    D6,A6               ;load into A6
 0000105E                           100  
 0000105E                           101  
@@ -158,7 +158,7 @@ Created On: 3/4/2021 12:03:21 PM
 00001068                           154      ;MOVEM.L         D2/A6, -(SP)
 00001068                           155  
 00001068  4EB9 000010A0            156      JSR         OP_DATA_CLR         ;clear buffer
-0000106E  45F9 000019AC            157      LEA         buffer, A2          ;A2 now points to buffer, which is cleared
+0000106E  45F9 00001AF2            157      LEA         buffer, A2          ;A2 now points to buffer, which is cleared
 00001074                           158      
 00001074                           159  
 00001074                           160      ;print out current mem address by putting into buffer and then adding a ' ' (tab)
@@ -186,7 +186,7 @@ Created On: 3/4/2021 12:03:21 PM
 000010A0  4283                     182      CLR.L       D3                  ; ? What is D3????
 000010A2                           183      ;MOVE.B      #buffer_size,D3     ; put 64 into D3
 000010A2  163C 000A                184      MOVE.B      #10,D3     ; put 10 into D3                                                                 ;delete after testing and use 64
-000010A6  49F9 000019AC            185      LEA         buffer, A4          ; what address register?
+000010A6  49F9 00001AF2            185      LEA         buffer, A4          ; what address register?
 000010AC                           186  
 000010AC                           187  OP_DATA_CLR_LOOP:
 000010AC  18FC 0000                188      MOVE.B      #0, (A4)+
@@ -1152,7 +1152,7 @@ Created On: 3/4/2021 12:03:21 PM
 0000179A                          1148  
 0000179A                          1149  
 0000179A                          1150  
-0000179A                          1151  ;****************************************** EA Stuff ***************************************************** 
+0000179A                          1151  ;****************************************** EA Stuff **************************************************************************************************************************** 
 0000179A                          1152  
 0000179A                          1153  EA_START:
 0000179A  41F9 000017A8           1154      LEA         EA_TYPE_TABLE, A0
@@ -1162,16 +1162,16 @@ Created On: 3/4/2021 12:03:21 PM
 000017A8                          1158  
 000017A8                          1159  
 000017A8                          1160  EA_TYPE_TABLE:
-000017A8  4EF9 000017EC           1161      JMP         EA_IMMEDIATE
-000017AE  4EF9 000017F4           1162      JMP         EA_MOVE             ;DONE
-000017B4  4EF9 0000183E           1163      JMP         EA_MOVEA
-000017BA  4EF9 0000183E           1164      JMP         EA_LEA
-000017C0  4EF9 0000183E           1165      JMP         EA_DESTONLY
-000017C6  4EF9 0000183E           1166      JMP         EA_EXT
-000017CC  4EF9 0000183E           1167      JMP         EA_MOVEM
-000017D2  4EF9 0000183E           1168      JMP         EA_TRAP
-000017D8  4EF9 0000183E           1169      JMP         EA_QUICK
-000017DE  4EF9 0000183E           1170      JMP         EA_BRANCH
+000017A8  4EF9 000017EC           1161      JMP         EA_IMMEDIATE        ;DONE
+000017AE  4EF9 0000182E           1162      JMP         EA_MOVE             ;DONE
+000017B4  4EF9 00001874           1163      JMP         EA_MOVEA
+000017BA  4EF9 000018BA           1164      JMP         EA_LEA
+000017C0  4EF9 000018BA           1165      JMP         EA_DESTONLY
+000017C6  4EF9 000018BA           1166      JMP         EA_EXT
+000017CC  4EF9 000018BA           1167      JMP         EA_MOVEM
+000017D2  4EF9 000018BA           1168      JMP         EA_TRAP
+000017D8  4EF9 000018BA           1169      JMP         EA_QUICK
+000017DE  4EF9 000018BA           1170      JMP         EA_BRANCH
 000017E4  4EF9 000017EA           1171      JMP         EA_FINISH
 000017EA                          1172  
 000017EA                          1173  EA_FINISH:
@@ -1181,195 +1181,348 @@ Created On: 3/4/2021 12:03:21 PM
 000017EC                          1177  
 000017EC                          1178  ;********************************************  EA_TYPE  ****************************************************   
 000017EC                          1179  
-000017EC                          1180  EA_IMMEDIATE:                           ;value 0                ;    0001 0001                 11      ORI.B   #$1,D1
-000017EC  14FC 0023               1181      MOVE.B  #'#',(A2)+
-000017F0  14FC 0024               1182      MOVE.B  #'$',(A2)+
-000017F4                          1183      
-000017F4                          1184      ;buffer will have 'ORI.B #$'
-000017F4                          1185      
-000017F4                          1186      
-000017F4                          1187      ;check size which is bits 6,7
-000017F4                          1188      ;isolate source mode - bits 5,4,3
-000017F4                          1189      ;isolate source register - bits 2,1,0
-000017F4                          1190  
-000017F4                          1191  
-000017F4                          1192  
-000017F4                          1193  ;D4 = mode      --> source / destination
-000017F4                          1194  ;D5 = register  --> source / destination   
-000017F4                          1195  EA_MOVE:
-000017F4  14FC 0009               1196      MOVE.B      #$09, (A2)+             ;adds a ' ' to buffer
-000017F8  41F9 0000183E           1197      LEA    EA_MODE_TABLE,A0             ;load table
-000017FE                          1198      
-000017FE                          1199      ;source mode are bits 3,4,5   |    ;source register are bits 0,1,2
-000017FE                          1200      
-000017FE                          1201      ;isolate source mode
-000017FE  2800                    1202      MOVE.L  D0,D4
-00001800  E64C                    1203      LSR.W   #3,D4
-00001802  0244 0007               1204      ANDI.W  #$7,D4
-00001806  C8FC 0006               1205      MULU    #6,D4
-0000180A                          1206          
-0000180A                          1207      ;isolate source register
-0000180A  2A00                    1208      MOVE.L  D0,D5
-0000180C  0245 0007               1209      ANDI.W  #$7,D5
-00001810                          1210      
-00001810  4EB9 0000183A           1211      JSR    EA_JMP_HELPER
-00001816  14FC 002C               1212      MOVE.B  #',',(A2)+                  ;add ',' to buffer  
-0000181A                          1213      
-0000181A                          1214      ;isolate destination mode
-0000181A  2800                    1215      MOVE.L  D0,D4
-0000181C  EC4C                    1216      LSR.W   #6,D4
-0000181E  0244 0007               1217      ANDI.W  #$7,D4
-00001822  C8FC 0006               1218      MULU    #6,D4
-00001826                          1219      
-00001826                          1220      ;isolate destination register 
-00001826  2A00                    1221      MOVE.L  D0,D5
-00001828  E84D                    1222      LSR.W   #4,D5
-0000182A  EA4D                    1223      LSR.W   #5,D5                       ;HAVE TO BREAK UP SHIFT TO STAY UNDER 8????
-0000182C  0245 0007               1224      ANDI.W  #$7,D5   
-00001830  4EB9 0000183A           1225      JSR    EA_JMP_HELPER
-00001836                          1226  
-00001836  4EF8 17EA               1227      JMP EA_FINISH
-0000183A                          1228  
-0000183A                          1229  EA_JMP_HELPER
-0000183A  4EF0 4000               1230      JMP     0(A0,D4)
-0000183E                          1231      
-0000183E                          1232  
-0000183E                          1233  
-0000183E                          1234  EA_MOVEA:
-0000183E                          1235  
-0000183E                          1236  
-0000183E                          1237  
-0000183E                          1238  
-0000183E                          1239  EA_LEA:
-0000183E                          1240  
-0000183E                          1241  
-0000183E                          1242  
-0000183E                          1243  
-0000183E                          1244  
-0000183E                          1245  EA_DESTONLY:
-0000183E                          1246  
-0000183E                          1247  
-0000183E                          1248  
-0000183E                          1249  
-0000183E                          1250  
-0000183E                          1251  EA_EXT:
-0000183E                          1252  
-0000183E                          1253  
-0000183E                          1254  
-0000183E                          1255  
-0000183E                          1256  
-0000183E                          1257  EA_MOVEM:
-0000183E                          1258  
-0000183E                          1259  
-0000183E                          1260  
-0000183E                          1261  
-0000183E                          1262  EA_TRAP:
-0000183E                          1263  
-0000183E                          1264  
-0000183E                          1265  
-0000183E                          1266  
-0000183E                          1267  
-0000183E                          1268  EA_QUICK:
-0000183E                          1269  
-0000183E                          1270  
-0000183E                          1271  
-0000183E                          1272  
-0000183E                          1273  EA_BRANCH:
-0000183E                          1274  
-0000183E                          1275  
-0000183E                          1276  
-0000183E                          1277  
-0000183E                          1278  ;********************************************  EA_MODE_TABLE  ****************************************************  
-0000183E                          1279  EA_MODE_TABLE:
-0000183E  4EF9 0000186E           1280      JMP     EA_MODE_000
-00001844  4EF9 0000187C           1281      JMP     EA_MODE_001
-0000184A  4EF9 0000188A           1282      JMP     EA_MODE_010
-00001850  4EF9 000018A0           1283      JMP     EA_MODE_011
-00001856  4EF9 000018BA           1284      JMP     EA_MODE_100
-0000185C  4EF9 000018D2           1285      JMP     EA_MODE_101
-00001862  4EF9 000018D2           1286      JMP     EA_MODE_110
-00001868  4EF9 000018D2           1287      JMP     EA_MODE_111
-0000186E                          1288      ;JMP     EA_MODE_FINISH
-0000186E                          1289  
-0000186E                          1290  ;********************************************  EA_MODE_XXX  ****************************************************    
-0000186E                          1291  EA_MODE_000:                                        ;Data register 'Dn'
-0000186E  14FC 0044               1292      MOVE.B  #'D',(A2)+                              ;put D on buffer
-00001872  1605                    1293      MOVE.B D5,D3                                    ;move to d3 for conversion
-00001874  4EB9 000018D2           1294      JSR     EA_HEX_TO_ASCII                         ;puts register on buffer  
-0000187A  4E75                    1295      RTS
-0000187C                          1296      
-0000187C                          1297  EA_MODE_001:                                        ;Address Register 'An'
-0000187C  14FC 0041               1298      MOVE.B  #'A',(A2)+                              ;put A on buffer
-00001880  1605                    1299      MOVE.B  D5,D3                                   ;move to d3 for conversion
-00001882  4EB9 000018D2           1300      JSR     EA_HEX_TO_ASCII                         ;puts register on buffer  
-00001888  4E75                    1301      RTS
-0000188A                          1302  
-0000188A                          1303  EA_MODE_010:                                        ;Address direct --> '(An)'
-0000188A  14FC 0028               1304      MOVE.B  #'(',(A2)+                              ;put ( on buffer
-0000188E  14FC 0041               1305      MOVE.B  #'A',(A2)+                              ;put A on buffer
-00001892  1605                    1306      MOVE.B  D5,D3                                   ;move to D3 for conversion
-00001894  4EB9 000018D2           1307      JSR     EA_HEX_TO_ASCII                         ;convert and put on buffer   
-0000189A  14FC 0029               1308      MOVE.B  #')',(A2)+                              ;put ) on buffer
-0000189E  4E75                    1309      RTS
-000018A0                          1310  
-000018A0                          1311  EA_MODE_011:                                        ;Address with Postincrement --> '(An)+' 
-000018A0  14FC 0028               1312      MOVE.B  #'(',(A2)+                              ;put ( on buffer
-000018A4  14FC 0041               1313      MOVE.B  #'A',(A2)+                              ;put A on buffer
-000018A8  1605                    1314      MOVE.B  D5,D3                                   ;move to D3 for conversion
-000018AA  4EB9 000018D2           1315      JSR     EA_HEX_TO_ASCII                         ;convert and put on buffer   
-000018B0  14FC 0029               1316      MOVE.B  #')',(A2)+                              ;put ) on buffer
-000018B4  14FC 002B               1317      MOVE.B  #'+',(A2)+                              ;put + on buffer
-000018B8  4E75                    1318      RTS
+000017EC                          1180  EA_IMMEDIATE:                               ;value 0
+000017EC  14FC 0009               1181      MOVE.B  #$09, (A2)+                     ;adds a ' ' to buffer
+000017F0  14FC 0023               1182      MOVE.B  #'#',(A2)+                      ;add a # to buffer
+000017F4  14FC 0024               1183      MOVE.B  #'$',(A2)+                      ;add a $ to buffer
+000017F8                          1184      
+000017F8                          1185      ;check size which is bits 6,7 and store in D6
+000017F8                          1186      ;get immediate value from memory based off size and store in D7
+000017F8  4EB9 0000195A           1187      JSR     EA_CHECK_SIZE
+000017FE                          1188      
+000017FE                          1189      ;at this point our size is in D6 and data is in D7 and memory has been advanced
+000017FE                          1190      ;convert immediate data to ascii and put on buffer
+000017FE  4EB9 00001984           1191      JSR     EA_ITOA_IMMEDIATE
+00001804                          1192      
+00001804  41F9 000018BE           1193      LEA     EA_MODE_TABLE,A0                ;load table
+0000180A  14FC 002C               1194      MOVE.B  #',',(A2)+                      ;add a # to buffer
+0000180E  14FC 0009               1195      MOVE.B  #$09, (A2)+                     ;adds a ' ' to buffer
+00001812                          1196      
+00001812                          1197      ;source mode are bits 3,4,5   |         ;source register are bits 0,1,2
+00001812                          1198      
+00001812                          1199      ;isolate source mode - bits 3,4,5 and store in D4
+00001812  2800                    1200      MOVE.L  D0,D4
+00001814  E64C                    1201      LSR.W   #3,D4
+00001816  0244 0007               1202      ANDI.W  #$7,D4
+0000181A  C8FC 0006               1203      MULU    #6,D4
+0000181E                          1204      
+0000181E                          1205      ;isolate source register - bits 0,1,2 and store in D5
+0000181E  2A00                    1206      MOVE.L  D0,D5
+00001820  0245 0007               1207      ANDI.W  #$7,D5
+00001824                          1208  
+00001824  4EB9 000018BA           1209      JSR     EA_JMP_HELPER
+0000182A  4EF8 17EA               1210      JMP     EA_FINISH
+0000182E                          1211  
+0000182E                          1212  ;D4 = mode      --> source / destination
+0000182E                          1213  ;D5 = register  --> source / destination   
+0000182E                          1214  EA_MOVE:
+0000182E  14FC 0009               1215      MOVE.B  #$09, (A2)+                     ;adds a ' ' to buffer
+00001832  41F9 000018BE           1216      LEA     EA_MODE_TABLE,A0                ;load table
+00001838                          1217      
+00001838                          1218      ;source mode are bits 3,4,5   |         ;source register are bits 0,1,2
+00001838                          1219      
+00001838                          1220      ;isolate source mode
+00001838  2800                    1221      MOVE.L  D0,D4
+0000183A  E64C                    1222      LSR.W   #3,D4
+0000183C  0244 0007               1223      ANDI.W  #$7,D4
+00001840  C8FC 0006               1224      MULU    #6,D4
+00001844                          1225          
+00001844                          1226      ;isolate source register
+00001844  2A00                    1227      MOVE.L  D0,D5
+00001846  0245 0007               1228      ANDI.W  #$7,D5
+0000184A                          1229      
+0000184A  4EB9 000018BA           1230      JSR    EA_JMP_HELPER
+00001850  14FC 002C               1231      MOVE.B  #',',(A2)+                  ;add ',' to buffer  
+00001854                          1232      
+00001854                          1233      ;isolate destination mode
+00001854  2800                    1234      MOVE.L  D0,D4
+00001856  EC4C                    1235      LSR.W   #6,D4
+00001858  0244 0007               1236      ANDI.W  #$7,D4
+0000185C  C8FC 0006               1237      MULU    #6,D4
+00001860                          1238      
+00001860                          1239      ;isolate destination register 
+00001860  2A00                    1240      MOVE.L  D0,D5
+00001862  E84D                    1241      LSR.W   #4,D5
+00001864  EA4D                    1242      LSR.W   #5,D5                       ;HAVE TO BREAK UP SHIFT TO STAY UNDER 8????
+00001866  0245 0007               1243      ANDI.W  #$7,D5   
+0000186A  4EB9 000018BA           1244      JSR     EA_JMP_HELPER
+00001870                          1245  
+00001870  4EF8 17EA               1246      JMP     EA_FINISH
+00001874                          1247      
+00001874                          1248  
+00001874                          1249  EA_MOVEA:
+00001874  14FC 0009               1250      MOVE.B  #$09, (A2)+                     ;adds a ' ' to buffer
+00001878  41F9 000018BE           1251      LEA     EA_MODE_TABLE,A0                ;load table
+0000187E                          1252  
+0000187E                          1253      ;source mode are bits 3,4,5   |         ;source register are bits 0,1,2
+0000187E                          1254      
+0000187E                          1255      ;isolate source mode
+0000187E  2800                    1256      MOVE.L  D0,D4
+00001880  E64C                    1257      LSR.W   #3,D4
+00001882  0244 0007               1258      ANDI.W  #$7,D4
+00001886  C8FC 0006               1259      MULU    #6,D4
+0000188A                          1260          
+0000188A                          1261      ;isolate source register
+0000188A  2A00                    1262      MOVE.L  D0,D5
+0000188C  0245 0007               1263      ANDI.W  #$7,D5
+00001890                          1264      
+00001890  4EB9 000018BA           1265      JSR    EA_JMP_HELPER
+00001896  14FC 002C               1266      MOVE.B  #',',(A2)+                  ;add ',' to buffer
+0000189A                          1267      
+0000189A                          1268      ;isolate destination mode --> SHOULD ALWAYS BE 001 AND GO TO ADDRESS REGISTER
+0000189A  2800                    1269      MOVE.L  D0,D4
+0000189C  EC4C                    1270      LSR.W   #6,D4
+0000189E  0244 0007               1271      ANDI.W  #$7,D4
+000018A2  C8FC 0006               1272      MULU    #6,D4
+000018A6                          1273      
+000018A6                          1274      ;isolate destination register 
+000018A6  2A00                    1275      MOVE.L  D0,D5
+000018A8  E84D                    1276      LSR.W   #4,D5
+000018AA  EA4D                    1277      LSR.W   #5,D5                       ;HAVE TO BREAK UP SHIFT TO STAY UNDER 8????
+000018AC  0245 0007               1278      ANDI.W  #$7,D5   
+000018B0  4EB9 000018BA           1279      JSR     EA_JMP_HELPER
+000018B6                          1280  
+000018B6  4EF8 17EA               1281      JMP     EA_FINISH
+000018BA                          1282  
+000018BA                          1283  EA_LEA:
+000018BA                          1284  
+000018BA                          1285  
+000018BA                          1286  
+000018BA                          1287  
+000018BA                          1288  
+000018BA                          1289  EA_DESTONLY:
+000018BA                          1290  
+000018BA                          1291  
+000018BA                          1292  
+000018BA                          1293  
+000018BA                          1294  
+000018BA                          1295  EA_EXT:
+000018BA                          1296  
+000018BA                          1297  
+000018BA                          1298  
+000018BA                          1299  
+000018BA                          1300  
+000018BA                          1301  EA_MOVEM:
+000018BA                          1302  
+000018BA                          1303  
+000018BA                          1304  
+000018BA                          1305  
+000018BA                          1306  EA_TRAP:
+000018BA                          1307  
+000018BA                          1308  
+000018BA                          1309  
+000018BA                          1310  
+000018BA                          1311  
+000018BA                          1312  EA_QUICK:
+000018BA                          1313  
+000018BA                          1314  
+000018BA                          1315  
+000018BA                          1316  
+000018BA                          1317  EA_BRANCH:
+000018BA                          1318  
 000018BA                          1319  
-000018BA                          1320  EA_MODE_100:                                        ;Address with Predecrement --> '-(An)'
-000018BA  14FC 002D               1321      MOVE.B  #'-',(A2)+                              ;put - on buffer
-000018BE  14FC 0028               1322      MOVE.B  #'(',(A2)+                              ;put ( on buffer
-000018C2  14FC 0041               1323      MOVE.B  #'A',(A2)+                              ;put A on buffer
-000018C6  1605                    1324      MOVE.B  D5,D3                                   ;move to D3 for conversion
-000018C8  4EB9 000018D2           1325      JSR     EA_HEX_TO_ASCII                         ;convert and put on buffer   
-000018CE  14FC 0029               1326      MOVE.B  #')',(A2)+                              ;put ) on buffer
-000018D2                          1327  
-000018D2                          1328  
-000018D2                          1329  
-000018D2                          1330  ;unsupported
-000018D2                          1331  EA_MODE_101:                                        
-000018D2                          1332  ;Address with Displacement --> '(d16, An)
-000018D2                          1333      
-000018D2                          1334  ;unsupported
-000018D2                          1335  EA_MODE_110:
-000018D2                          1336  
-000018D2                          1337  
-000018D2                          1338  
-000018D2                          1339  EA_MODE_111:        
-000018D2                          1340      
-000018D2                          1341      
-000018D2                          1342      
-000018D2                          1343  
-000018D2                          1344  EA_HEX_TO_ASCII
-000018D2  0603 0030               1345      ADDI.B      #$30,D3                     ;add $30 to D1 to convert
-000018D6  14C3                    1346      MOVE.B      D3,(A2)+                    ;add to buffer and increment to next position
-000018D8  4E75                    1347      RTS     
-000018DA                          1348      
-000018DA                          1349  ;****************************************** MESSAGES ***************************************************
-000018DA= 57 65 6C 63 6F 6D ...   1350  welcome_message         DC.B    'Welcome to 68k disassembler',CR,LF,0
-000018F8                          1351  
-000018F8= 50 6C 65 61 73 65 ...   1352  get_start_address       DC.B    'Please enter a starting address in hexadecimal',CR,LF,0
-00001929                          1353  
-00001929= 50 6C 65 61 73 65 ...   1354  get_end_address         DC.B    'Please enter an ending address in hexadecimal',CR,LF,0
-00001959                          1355  
-00001959= 49 6E 76 61 6C 69 ...   1356  atoi_error_invalid      DC.B    'Invalid address, characters must be $0-F',CR,LF,0
-00001984                          1357  
-00001984                          1358  ascii_start:
-00001984                          1359      DS.w    10          ;specify size later?
-00001998                          1360      
-00001998                          1361  ascii_end:
-00001998                          1362      DS.w    10          ;specify size later?
-000019AC                          1363  
-000019AC                          1364  buffer                  ;storing op code
-000019AC                          1365      DS.W    64          ;do we leave as .w or change to .l ?
-00001A2C                          1366      
-00001A2C                          1367  
-00001A2C                          1368      END    START        ; last line of source
+000018BA                          1320  
+000018BA                          1321  EA_JMP_HELPER
+000018BA  4EF0 4000               1322      JMP     0(A0,D4)
+000018BE                          1323  
+000018BE                          1324  
+000018BE                          1325  ;********************************************  EA_MODE_TABLE  ****************************************************  
+000018BE                          1326  EA_MODE_TABLE:
+000018BE  4EF9 000018EE           1327      JMP     EA_MODE_000
+000018C4  4EF9 000018FC           1328      JMP     EA_MODE_001
+000018CA  4EF9 0000190A           1329      JMP     EA_MODE_010
+000018D0  4EF9 00001920           1330      JMP     EA_MODE_011
+000018D6  4EF9 0000193A           1331      JMP     EA_MODE_100
+000018DC  4EF9 00001952           1332      JMP     EA_MODE_101
+000018E2  4EF9 00001952           1333      JMP     EA_MODE_110
+000018E8  4EF9 00001952           1334      JMP     EA_MODE_111
+000018EE                          1335      ;JMP     EA_MODE_FINISH
+000018EE                          1336  
+000018EE                          1337  ;********************************************  EA_MODE_XXX  ****************************************************    
+000018EE                          1338  EA_MODE_000:                                        ;Data register 'Dn'
+000018EE  14FC 0044               1339      MOVE.B  #'D',(A2)+                              ;put D on buffer
+000018F2  1605                    1340      MOVE.B D5,D3                                    ;move to d3 for conversion
+000018F4  4EB9 00001952           1341      JSR     EA_HEX_TO_ASCII                         ;puts register on buffer  
+000018FA  4E75                    1342      RTS
+000018FC                          1343      
+000018FC                          1344  EA_MODE_001:                                        ;Address Register 'An'
+000018FC  14FC 0041               1345      MOVE.B  #'A',(A2)+                              ;put A on buffer
+00001900  1605                    1346      MOVE.B  D5,D3                                   ;move to d3 for conversion
+00001902  4EB9 00001952           1347      JSR     EA_HEX_TO_ASCII                         ;puts register on buffer  
+00001908  4E75                    1348      RTS
+0000190A                          1349  
+0000190A                          1350  EA_MODE_010:                                        ;Address direct --> '(An)'
+0000190A  14FC 0028               1351      MOVE.B  #'(',(A2)+                              ;put ( on buffer
+0000190E  14FC 0041               1352      MOVE.B  #'A',(A2)+                              ;put A on buffer
+00001912  1605                    1353      MOVE.B  D5,D3                                   ;move to D3 for conversion
+00001914  4EB9 00001952           1354      JSR     EA_HEX_TO_ASCII                         ;convert and put on buffer   
+0000191A  14FC 0029               1355      MOVE.B  #')',(A2)+                              ;put ) on buffer
+0000191E  4E75                    1356      RTS
+00001920                          1357  
+00001920                          1358  EA_MODE_011:                                        ;Address with Postincrement --> '(An)+' 
+00001920  14FC 0028               1359      MOVE.B  #'(',(A2)+                              ;put ( on buffer
+00001924  14FC 0041               1360      MOVE.B  #'A',(A2)+                              ;put A on buffer
+00001928  1605                    1361      MOVE.B  D5,D3                                   ;move to D3 for conversion
+0000192A  4EB9 00001952           1362      JSR     EA_HEX_TO_ASCII                         ;convert and put on buffer   
+00001930  14FC 0029               1363      MOVE.B  #')',(A2)+                              ;put ) on buffer
+00001934  14FC 002B               1364      MOVE.B  #'+',(A2)+                              ;put + on buffer
+00001938  4E75                    1365      RTS
+0000193A                          1366  
+0000193A                          1367  EA_MODE_100:                                        ;Address with Predecrement --> '-(An)'
+0000193A  14FC 002D               1368      MOVE.B  #'-',(A2)+                              ;put - on buffer
+0000193E  14FC 0028               1369      MOVE.B  #'(',(A2)+                              ;put ( on buffer
+00001942  14FC 0041               1370      MOVE.B  #'A',(A2)+                              ;put A on buffer
+00001946  1605                    1371      MOVE.B  D5,D3                                   ;move to D3 for conversion
+00001948  4EB9 00001952           1372      JSR     EA_HEX_TO_ASCII                         ;convert and put on buffer   
+0000194E  14FC 0029               1373      MOVE.B  #')',(A2)+                              ;put ) on buffer
+00001952                          1374  
+00001952                          1375  
+00001952                          1376  
+00001952                          1377  ;unsupported
+00001952                          1378  EA_MODE_101:                                        
+00001952                          1379  ;Address with Displacement --> '(d16, An)
+00001952                          1380      
+00001952                          1381  ;unsupported
+00001952                          1382  EA_MODE_110:
+00001952                          1383  
+00001952                          1384  
+00001952                          1385  
+00001952                          1386  EA_MODE_111:        
+00001952                          1387      
+00001952                          1388      
+00001952                          1389      
+00001952                          1390  
+00001952                          1391  EA_HEX_TO_ASCII:
+00001952  0603 0030               1392      ADDI.B      #$30,D3                     ;add $30 to D1 to convert
+00001956  14C3                    1393      MOVE.B      D3,(A2)+                    ;add to buffer and increment to next position
+00001958  4E75                    1394      RTS     
+0000195A                          1395  
+0000195A                          1396  
+0000195A                          1397  EA_CHECK_SIZE:
+0000195A  4246                    1398      CLR     D6
+0000195C  2C00                    1399      MOVE.L  D0,D6                           ;complete opcode --> D6
+0000195E  0246 00F0               1400      ANDI.W  #nibble3,D6                     ;isolating nibble 3
+00001962  EC4E                    1401      LSR.W   #right6,D6                      ;shifting bits 7,6 --> 1,0
+00001964                          1402      
+00001964  BC7C 0000               1403      CMP     #00,D6
+00001968  6700 000E               1404      BEQ     EA_SIZE_BYTE
+0000196C  BC7C 0001               1405      CMP     #01,D6
+00001970  6700 000A               1406      BEQ     EA_SIZE_WORD
+00001974  6000 000A               1407      BRA     EA_SIZE_LONG
+00001978                          1408  
+00001978                          1409  EA_SIZE_BYTE:
+00001978  3E1D                    1410      MOVE.W  (A5)+,D7
+0000197A                          1411      ;MOVE.B  #4,D3;                          SET UP COUNTER
+0000197A  4E75                    1412      RTS
+0000197C                          1413  
+0000197C                          1414  EA_SIZE_WORD:
+0000197C  3E15                    1415      MOVE.W  (A5),D7
+0000197E                          1416      ;MOVE.B  #4,D3;                          SET UP COUNTER
+0000197E  4E75                    1417      RTS
+00001980                          1418  
+00001980                          1419  EA_SIZE_LONG:
+00001980  3E15                    1420      MOVE.W  (A5),D7
+00001982                          1421      ;MOVE.B  #8,D3;                          SET UP COUNTER
+00001982  4E75                    1422      RTS
+00001984                          1423  
+00001984                          1424  
+00001984                          1425  
+00001984                          1426  EA_ITOA_IMMEDIATE:
+00001984                          1427      ;D3 = counter, D7 = value to be converted, D6 = size
+00001984  BC3C 0000               1428      CMP.B   #%00,D6
+00001988  6700 0012               1429      BEQ     EA_ITOA_BYTE
+0000198C  BC3C 0001               1430      CMP.B   #%01,D6
+00001990  6700 0016               1431      BEQ     EA_ITOA_WORD
+00001994  BC3C 0002               1432      CMP.B   #%10,D6
+00001998  6700 0024               1433      BEQ     EA_ITOA_LONG
+0000199C                          1434      
+0000199C                          1435  
+0000199C                          1436  ;EA_IT0A_IMMEDIATE_LOOP
+0000199C                          1437  ;    CMP.B   #0,D3                       ;check if loop done
+0000199C                          1438  ;    BEQ     EA_ITOA_FINISH              ;if = 0, loop done
+0000199C                          1439      
+0000199C                          1440  EA_ITOA_BYTE:
+0000199C  4EB9 000019E6           1441      JSR     EA_ITOA_BYTE_CONVERT
+000019A2                          1442      
+000019A2  4EF9 00001A1E           1443      JMP     EA_ITOA_DONE
+000019A8                          1444  
+000019A8                          1445  
+000019A8                          1446  EA_ITOA_WORD:
+000019A8  E04F                    1447      LSR.W   #right8,D7
+000019AA  4EB9 000019E6           1448      JSR     EA_ITOA_BYTE_CONVERT
+000019B0  3E1D                    1449      MOVE.W  (A5)+,D7
+000019B2  4EB9 000019E6           1450      JSR     EA_ITOA_BYTE_CONVERT
+000019B8                          1451      
+000019B8  4EF9 00001A1E           1452      JMP     EA_ITOA_DONE
+000019BE                          1453      
+000019BE                          1454  EA_ITOA_LONG:
+000019BE  E04F                    1455      LSR.W   #right8,D7
+000019C0  4EB9 000019E6           1456      JSR     EA_ITOA_BYTE_CONVERT
+000019C6  3E1D                    1457      MOVE.W  (A5)+,D7
+000019C8  4EB9 000019E6           1458      JSR     EA_ITOA_BYTE_CONVERT
+000019CE                          1459  
+000019CE  3E15                    1460      MOVE.W  (A5),D7
+000019D0  E04F                    1461      LSR.W   #right8,D7
+000019D2  4EB9 000019E6           1462      JSR     EA_ITOA_BYTE_CONVERT
+000019D8  3E1D                    1463      MOVE.W  (A5)+,D7
+000019DA  4EB9 000019E6           1464      JSR     EA_ITOA_BYTE_CONVERT
+000019E0                          1465  
+000019E0  4EF9 00001A1E           1466      JMP     EA_ITOA_DONE
+000019E6                          1467  
+000019E6                          1468  EA_ITOA_BYTE_CONVERT:
+000019E6  3607                    1469      MOVE.W  D7,D3
+000019E8  0243 00F0               1470      ANDI.W  #$F0,D3
+000019EC  E84B                    1471      LSR.W   #right4,D3
+000019EE  4EB9 00001A02           1472      JSR     EA_ITOA_NIBBLE_CONVERT
+000019F4                          1473      
+000019F4  3607                    1474      MOVE.W  D7,D3
+000019F6  0243 000F               1475      ANDI.W  #$0F,D3
+000019FA  4EB9 00001A02           1476      JSR     EA_ITOA_NIBBLE_CONVERT
+00001A00  4E75                    1477      RTS
+00001A02                          1478  
+00001A02                          1479  EA_ITOA_NIBBLE_CONVERT:
+00001A02  B63C 0009               1480      CMP.B   #9,D3
+00001A06  6E00 000E               1481      BGT     EA_ITOA_LETTER
+00001A0A  6000 0002               1482      BRA     EA_ITOA_NUMBER
+00001A0E                          1483  
+00001A0E                          1484  EA_ITOA_HEX2ASCII:
+00001A0E                          1485  
+00001A0E                          1486  
+00001A0E                          1487  
+00001A0E                          1488  EA_ITOA_NUMBER:
+00001A0E  0603 0030               1489      ADDI.B  #$30,D3
+00001A12  14C3                    1490      MOVE.B  D3,(A2)+
+00001A14  4E75                    1491      RTS
+00001A16                          1492  
+00001A16                          1493  EA_ITOA_LETTER:
+00001A16  0603 0037               1494      ADDI.B  #$37,D3
+00001A1A  14C3                    1495      MOVE.B  D3,(A2)+
+00001A1C  4E75                    1496      RTS
+00001A1E                          1497  
+00001A1E                          1498  EA_ITOA_DONE
+00001A1E  4E75                    1499      RTS
+00001A20                          1500  
+00001A20                          1501      
+00001A20                          1502  ;****************************************** MESSAGES ***************************************************
+00001A20= 57 65 6C 63 6F 6D ...   1503  welcome_message         DC.B    'Welcome to 68k disassembler',CR,LF,0
+00001A3E                          1504  
+00001A3E= 50 6C 65 61 73 65 ...   1505  get_start_address       DC.B    'Please enter a starting address in hexadecimal',CR,LF,0
+00001A6F                          1506  
+00001A6F= 50 6C 65 61 73 65 ...   1507  get_end_address         DC.B    'Please enter an ending address in hexadecimal',CR,LF,0
+00001A9F                          1508  
+00001A9F= 49 6E 76 61 6C 69 ...   1509  atoi_error_invalid      DC.B    'Invalid address, characters must be $0-F',CR,LF,0
+00001ACA                          1510  
+00001ACA                          1511  ascii_start:
+00001ACA                          1512      DS.w    10          ;specify size later?
+00001ADE                          1513      
+00001ADE                          1514  ascii_end:
+00001ADE                          1515      DS.w    10          ;specify size later?
+00001AF2                          1516  
+00001AF2                          1517  buffer                  ;storing op code
+00001AF2                          1518      DS.W    64          ;do we leave as .w or change to .l ?
+00001B72                          1519      
+00001B72                          1520  
+00001B72                          1521      END    START        ; last line of source
 
 No errors detected
 No warnings generated
@@ -1378,46 +1531,60 @@ No warnings generated
 SYMBOL TABLE INFORMATION
 Symbol-name         Value
 -------------------------
-ASCII_END           1998
-ASCII_START         1984
+ASCII_END           1ADE
+ASCII_START         1ACA
 ATOI                16CE
 ATOI_DONE           1740
 ATOI_ERROR          1740
-ATOI_ERROR_INVALID  1959
+ATOI_ERROR_INVALID  1A9F
 ATOI_FORMAT         1730
 ATOI_LOOP           16D4
 ATOI_LOWERCASE_LETTER  1726
 ATOI_NUMBER         1712
 ATOI_UPPERCASE_LETTER  171C
-BUFFER              19AC
+BUFFER              1AF2
 BUFFER_SIZE         40
 CR                  D
 DECODING_LOOP       105E
 DEST_MODE           1C0
 DONE                1064
-EA_BRANCH           183E
-EA_DESTONLY         183E
-EA_EXT              183E
+EA_BRANCH           18BA
+EA_CHECK_SIZE       195A
+EA_DESTONLY         18BA
+EA_EXT              18BA
 EA_FINISH           17EA
-EA_HEX_TO_ASCII     18D2
+EA_HEX_TO_ASCII     1952
 EA_IMMEDIATE        17EC
-EA_JMP_HELPER       183A
-EA_LEA              183E
-EA_MODE_000         186E
-EA_MODE_001         187C
-EA_MODE_010         188A
-EA_MODE_011         18A0
-EA_MODE_100         18BA
-EA_MODE_101         18D2
-EA_MODE_110         18D2
-EA_MODE_111         18D2
-EA_MODE_TABLE       183E
-EA_MOVE             17F4
-EA_MOVEA            183E
-EA_MOVEM            183E
-EA_QUICK            183E
+EA_ITOA_BYTE        199C
+EA_ITOA_BYTE_CONVERT  19E6
+EA_ITOA_DONE        1A1E
+EA_ITOA_HEX2ASCII   1A0E
+EA_ITOA_IMMEDIATE   1984
+EA_ITOA_LETTER      1A16
+EA_ITOA_LONG        19BE
+EA_ITOA_NIBBLE_CONVERT  1A02
+EA_ITOA_NUMBER      1A0E
+EA_ITOA_WORD        19A8
+EA_JMP_HELPER       18BA
+EA_LEA              18BA
+EA_MODE_000         18EE
+EA_MODE_001         18FC
+EA_MODE_010         190A
+EA_MODE_011         1920
+EA_MODE_100         193A
+EA_MODE_101         1952
+EA_MODE_110         1952
+EA_MODE_111         1952
+EA_MODE_TABLE       18BE
+EA_MOVE             182E
+EA_MOVEA            1874
+EA_MOVEM            18BA
+EA_QUICK            18BA
+EA_SIZE_BYTE        1978
+EA_SIZE_LONG        1980
+EA_SIZE_WORD        197C
 EA_START            179A
-EA_TRAP             183E
+EA_TRAP             18BA
 EA_TYPE_BRANCH      9
 EA_TYPE_DESTONLY    4
 EA_TYPE_EXT         5
@@ -1431,9 +1598,9 @@ EA_TYPE_QUICK       8
 EA_TYPE_TABLE       17A8
 EA_TYPE_TRAP        7
 GET_ENDING_ADDRESS  1038
-GET_END_ADDRESS     1929
+GET_END_ADDRESS     1A6F
 GET_STARTING_ADDRESS  1012
-GET_START_ADDRESS   18F8
+GET_START_ADDRESS   1A3E
 ITOA                1744
 ITOA_ADDRESS        174E
 ITOA_ADDRESS_LOOP   175C
@@ -1546,4 +1713,4 @@ START               1000
 START_DECODING      105E
 VALIDATE_BEGINNING  179A
 WELCOME             1006
-WELCOME_MESSAGE     18DA
+WELCOME_MESSAGE     1A20
