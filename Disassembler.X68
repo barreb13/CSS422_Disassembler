@@ -46,8 +46,6 @@ ea_type_branch      EQU     9
 
 
 
-
-
     ORG    $1000
 START:                              ;first instruction of program
     LEA     stack, SP               ;SP @ $A0000
@@ -59,46 +57,69 @@ WELCOME:
     LEA     welcome_message,A1      ;load the welcome message into A1
     MOVE.B  #14,D0
     TRAP    #15                     ;print contents of welcome_message
-    
 
 
 ;*********************************** Get Starting Address *************************************** 
 GET_STARTING_ADDRESS:
+    ;prompt for address
     MOVE.B  #14,D0    
     LEA     get_start_address,A1    ;load the get_start_address message into A1
     TRAP    #15                     ;print get_start_address
     
+    ;get user input address, store, and convert
     LEA     ascii_start,A1          ;store
     MOVE.B  #2,D0                   ;get user input    
     TRAP    #15                     ;another trap to get input
     JSR     ATOI                    ;address is now in hex format in memory location
     
-    ;??                             MOVE.L  (A1),D3
     
-    ;perform checks (later)
+    ;at this point our address is in D4 in hex
+    ;check if > 0
+    CMP.L   #0,D4                       ;compare to D4
+    BLE     STARTA_ERROR_LESS_THAN_ZERO ;branch to ERROR_LESS_THAN_ZERO if less than 0
     
+    ;?? MOVE.L  (A1),D3
     
+    ;address is > 0 so check if even / odd
+    ROR.L   #1,D4
+    BCS     STARTA_ERROR_NOT_EVEN
+    ROL.L   #1,D4    
+    
+    ;address is > 0 and verified even
     MOVE.l    (ascii_start),D5      ;load into A5
     MOVE.l    D5,A5                ;load into A5
 
 
 ;******************************** Get Ending Address ******************************************** 
-GET_ENDING_ADDRESS: 
+GET_ENDING_ADDRESS:
+    ;prompt for address 
     MOVE.B  #14,D0
     LEA     get_end_address,A1      ;load the get_end_address message into A1  
     TRAP    #15                     ;print get_end_address
     
+    ;get user input address, store, and convert
     LEA     ascii_end,A1            ;store 
     MOVE.B  #2,D0                   ;get user input
     TRAP    #15                     ;another trap to get intput
     JSR ATOI
 
-    ;perform checks (later)
-
-    MOVE.l    (ascii_end),D6      ;load into A6
+    ;perform checks:
+    ;1.) even
+    ROR.L   #1,D4
+    BCS     ENDA_ERROR_NOT_EVEN
+    ROL.L   #1,D4    
+    
+    ;2.) less than 00FFFFFF
+    CMP.L   #$00FFFFFF,D4
+    BGE     ENDA_ERROR_LARGE    
+    
+    ;3.) greater than starting address
+    CMP.L   D4,A5
+    BGE     ENDA_ERROR_LESS_THAN_STARTA
+    
+    ;good --> store in A6
+    MOVE.l    (ascii_end),D6      ;load into D6
     MOVE.l    D6,A6               ;load into A6
-
-
 
 
 ;************************************ Main Loop???? ***********************************************
@@ -127,7 +148,7 @@ DONE:
 
 
 
-;************************************ OP Stuff ********************************************************** 
+;************************************ OP Stuff *************************************************************************************************************************** 
 
 ;A0 = POINTER TO OP_TABLE???
 ;A1 = 
@@ -1004,14 +1025,13 @@ OP_CHECK_SIZE_ADDA:
     CMP     #0,D1                               ;check if bit == 0
     BEQ     OP_SIZE_WORD                        ;if yes, size = word
     BRA     OP_SIZE_LONG                        ;else, size = long
-
  
 
-;******************************** ATOI *********************************************
+;******************************** ATOI ******************************************************************************************************************************
 ATOI:
         MOVE.L      D1,D2                   ;loop variable (size) is in D2
         MOVEA.L     A1,A2                   ;pointer to next char
-        CLR         D4
+        CLR.L       D4
 
 ATOI_LOOP  
         CLR         D3                      ;clear d3
@@ -1073,7 +1093,7 @@ ATOI_DONE
     MOVE.L         D4,(A1)                      ;at this point, move the new address in D4 to mem location                                
     RTS                                         ;used to RTS after a branch statement
 
-;************************************* ITOA *********************************************
+;************************************* ITOA ***********************************************************************************************************
 ;A0
 ;A1
 ;A2 = buffer (this is our decoded string that will print to screen)
@@ -1156,12 +1176,38 @@ VALIDATE_BEGINNING:
 
 
 
+;******************************** Message Error Handling ***************************************************************************************************************** 
+STARTA_ERROR_LESS_THAN_ZERO:
+    MOVE.B  #14,D0
+    LEA     error_message_1,A1      ;load the get_end_address message into A1
+    TRAP    #15    
+    JMP     GET_STARTING_ADDRESS
 
+STARTA_ERROR_NOT_EVEN:
+    MOVE.B  #14,D0
+    LEA     error_message_2,A1      ;load error_message_2
+    TRAP    #15    
+    JMP     GET_STARTING_ADDRESS
 
+ENDA_ERROR_NOT_EVEN:
+    MOVE.B  #14,D0
+    LEA     error_message_3,A1      ;load error_message_3
+    TRAP    #15
+    JMP     GET_ENDING_ADDRESS
 
+ENDA_ERROR_LARGE:
+    MOVE.B  #14,D0
+    LEA     error_message_4,A1      ;load error_message_4
+    TRAP    #15
+    JMP     GET_ENDING_ADDRESS
+    
+ENDA_ERROR_LESS_THAN_STARTA:
+    MOVE.B  #14,D0
+    LEA     error_message_5,A1      ;load error_message_5
+    TRAP    #15
+    JMP     GET_ENDING_ADDRESS
 
-
-;****************************************** EA Stuff **************************************************************************************************************************** 
+;****************************************** EA Stuff ********************************************************************************************************************* 
 
 EA_START:
     LEA         EA_TYPE_TABLE, A0
@@ -1552,6 +1598,18 @@ get_end_address         DC.B    'Please enter an ending address in hexadecimal',
 
 atoi_error_invalid      DC.B    'Invalid address, characters must be $0-F',CR,LF,0
 
+
+error_message_1         DC.B    'Invalid Address: Must be greater than 0',CR,LF,0
+
+error_message_2         DC.B    'Invalid Address: Must be even',CR,LF,0
+
+error_message_3         DC.B    'Invalid Address: Must be even',CR,LF,0
+
+error_message_4         DC.B    'Invalid Address: Must be less than $00FFFFFF',CR,LF,0
+
+error_message_5         DC.B    'Invalid Address: Must be greater than starting address',CR,LF,0
+
+
 ascii_start:
     DS.w    10          ;specify size later?
     
@@ -1563,6 +1621,8 @@ buffer                  ;storing op code
     
 
     END    START        ; last line of source
+
+
 
 
 
