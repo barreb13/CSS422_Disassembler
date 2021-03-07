@@ -684,6 +684,7 @@ OP_NOP:
     MOVE.B  #'O', (A2)+
     MOVE.B  #'P', (A2)+
     
+    ;NO EA
     JMP     OP_FINISH
 
 
@@ -1220,12 +1221,12 @@ EA_TYPE_TABLE:
     JMP         EA_IMMEDIATE        ;DONE
     JMP         EA_MOVE             ;DONE
     JMP         EA_MOVEA            ;DONE
-    JMP         EA_LEA              ;COME BACK TO AFTER TALKING WITH PROFESSOR ABOUT MODE 111
-    JMP         EA_DESTONLY
+    JMP         EA_LEA              ;DONE
+    JMP         EA_DESTONLY         ;JMP, CLR
     JMP         EA_EXT
     JMP         EA_MOVEM
     JMP         EA_TRAP
-    JMP         EA_QUICK
+    JMP         EA_QUICK            ;ADDQ
     JMP         EA_BRANCH
     JMP         EA_FINISH
 
@@ -1357,8 +1358,28 @@ EA_LEA:
     
     JSR    EA_JMP_HELPER
     MOVE.B  #',',(A2)+                  ;add ',' to buffer
-  
+    
+    ;destination always An
+    ;MOVE.B  #'A',(A2)+                  ;add 'A' to buffer
+    
+    ;isolate destination register 
+    ;MOVE.L  D0,D5
+    ;LSR.W   #4,D5
+    ;LSR.W   #5,D5                       ;HAVE TO BREAK UP SHIFT TO STAY UNDER 8????
+    ;ANDI.W  #$7,D5
 
+    ;isolate destination mode --> SHOULD ALWAYS BE 001 AND GO TO ADDRESS REGISTER
+    MOVE.L  #1,D4
+    MULU    #6,D4
+    
+    ;isolate destination register 
+    MOVE.L  D0,D5
+    LSR.W   #4,D5
+    LSR.W   #5,D5                       ;HAVE TO BREAK UP SHIFT TO STAY UNDER 8????
+    ANDI.W  #$7,D5   
+    JSR     EA_JMP_HELPER
+
+    JMP     EA_FINISH
 
 EA_DESTONLY:        ;JMP, CLR
 
@@ -1402,11 +1423,45 @@ EA_TRAP:
 
 
 EA_QUICK:
+    ;FIGURE WHAT KIND? (ADDQ,SUBQ,MOVEQ)
+    ;ADDQ/SUBQ  -->  opcode = 0101 (stored in D0)
+    ;MOVEQ      -->  opcode = 0111 (stored in D0)
+    MOVE.L      D0,D1               ;should move into D1
+    LSR.W       #right12,D1         ;shift D1 by 12 bits, leaving just 4 bits
+    
+    CMP.W       #$5,D1
+    BEQ         EA_ADDQ_SUBQ
+
+
+
+EA_ADDQ_SUBQ:
+    ;CHECK BIT 8 FOR ADDQ OR SUBQ
+    CMP.W       #nibble2,D1
+    LSR.W       #right7,D1     
+    ANDI.W      #1,D1
+    CMP.B       #0,D1
+    BEQ         EA_ADDQ
+    CMP.B       #1,D1  
+    BEQ         EA_SUBQ
+    ;HANDLE ERROR       
+
+
+EA_ADDQ:
+    
+
+
+EA_SUBQ:
 
 
 
 
 EA_BRANCH:
+
+
+
+
+
+
 
 
 
@@ -1473,9 +1528,47 @@ EA_MODE_101:
 ;unsupported
 EA_MODE_110:
 
-EA_MODE_111:        
+
+
+;some form of immediate data: short, long, immediate
+EA_MODE_111:
+    ;D4 = MODE | D5 = register (000, 001, 100)
+    ;000 = Absolute Short (xxx).w
+    ;001 = Absolute Long (xxx).l
+    ;100 = Immediate data
     
+    CMP.B   #000,D5
+    BEQ     EA_111_ABSOLUTE_SHORT
+    CMP.B   #001,D5
+    BEQ     EA_111_ABSOLUTE_LONG
+    CMP.B   #100,D5
+    BEQ     EA_111_IMMEDIATE
     
+    ;HANDLE ERROR
+            
+    
+EA_111_ABSOLUTE_SHORT:
+    ;A5 is looking at correct spot
+    ;ADD WORD VALUE AT A5 ON TO BUFFER AT A2 AND INCREMENT BY WORD
+    MOVE.B  #'$',(A2)+                              ;put $ on buffer
+    MOVE.W  (A5),D7
+    CLR     D6
+    MOVE.B  #01,D6                                  ;word size in EA_ITOA_IMMEDIATE
+    JSR     EA_ITOA_IMMEDIATE
+    RTS
+
+EA_111_ABSOLUTE_LONG:
+    MOVE.B  #'$',(A2)+                              ;put $ on buffer
+    MOVE.W  (A5),D7
+    CLR     D6
+    MOVE.B  #02,D6                                  ;long size in EA_ITOA_IMMEDIATE        
+    JSR     EA_ITOA_IMMEDIATE
+    RTS
+
+EA_111_IMMEDIATE:
+    
+
+   
     
 
 EA_HEX_TO_ASCII:
@@ -1519,7 +1612,7 @@ EA_ITOA_IMMEDIATE:
     BEQ     EA_ITOA_BYTE
     CMP.B   #%01,D6
     BEQ     EA_ITOA_WORD
-    CMP.B   #%10,D6
+    CMP.B   #%10,D6     
     BEQ     EA_ITOA_LONG
     
 
@@ -1621,6 +1714,7 @@ buffer                  ;storing op code
     
 
     END    START        ; last line of source
+
 
 
 
