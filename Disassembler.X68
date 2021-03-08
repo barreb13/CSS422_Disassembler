@@ -11,6 +11,7 @@ LF                  EQU     $0a     ;line feed
 stack               EQU     $000A0000
 lines_per_screen    EQU     30
 buffer_size         EQU     64      ;size of buffer
+nibble1             EQU     $F000   ;1st nibble in code (bits 15-12)
 nibble2             EQU     $0F00   ;2nd nibble in code (bits 11-8)
 nibble3             EQU     $00F0   ;3rd nibble in code (bits 7-4)
 nibble4             EQU     $000F   ;4th nibble in code (bits 3-0)
@@ -28,7 +29,7 @@ right12             EQU     12      ;shift 12 to extract 3rd byte
 right16             EQU     16      ;shift 16 to extract 2nd byte
 right24             EQU     24      ;shift 24 to extract 1st byte
 dest_mode           EQU     $01C0   ; --> 0000 0001 1100 0000 (used for destination in MOVE/MOVEA
-dest_reg            EQU     $0E00   ;destination register
+dest_reg            EQU     $0E00   ;destination register (0000 0111 0000 0000)
 
 ea_type_immediate   EQU     0
 ea_type_move        EQU     1
@@ -308,9 +309,31 @@ opcode0100:
 
 ;ADDQ (SUBQ)                                                        $5
 opcode0101:
-    JMP         OP_ADDQ
+    ;JMP         OP_ADDQ
+    
+    
+    ;3/8/21
+    MOVE.L      D0,D1
+    ANDI.W      #nibble2,D1
+    LSR.W       #right8,D1
+    ANDI.W      #1,D1
+    CMP.B       #0,D1
+    BEQ         OP_ADDQ
+    CMP.B       #1,D1   
+    BEQ         OP_SUBQ
+    ;HANDLE ERROR
 
 
+;EA_ADDQ_SUBQ:
+;    ;CHECK BIT 8 FOR ADDQ OR SUBQ
+;    CMP.W       #nibble2,D1
+;    LSR.W       #right7,D1     
+;    ANDI.W      #1,D1
+;    CMP.B       #0,D1
+;    BEQ         EA_ADDQ
+;    CMP.B       #1,D1  
+;    BEQ         EA_SUBQ
+;    ;HANDLE ERROR      
 
 
 ;BRA.bw, BSR.bw (BEQ)                                               $6
@@ -766,15 +789,27 @@ OP_ADDQ:
     JMP     OP_FINISH
 
 OP_SUBQ:  ;(optional)
-;implement later if needed
+    MOVE.B  #'S', (A2)+
+    MOVE.B  #'U', (A2)+
+    MOVE.B  #'B', (A2)+
+    MOVE.B  #'Q', (A2)+
+    
+    ;call OP_CHECK_SIZE to append a .b/.w/.l
+    JSR     OP_CHECK_SIZE
+    
+    MOVE.L  #ea_type_quick, D1                   ;preps for EA_START and puts 8 into D1
 
+    JSR     EA_START
+    JMP     OP_FINISH
 
 OP_BRA:                                     ;???? DO WE DEFINE SIZE HERE OR AFTER????
     MOVE.B  #'B', (A2)+
     MOVE.B  #'R', (A2)+
     MOVE.B  #'A', (A2)+
 
-    JSR     EA_START                        ;? DO WE HAVE EA?
+    MOVE.L  #ea_type_branch,D1
+    
+    JSR     EA_START
     JMP     OP_FINISH
 
 
@@ -782,7 +817,9 @@ OP_BSR:
     MOVE.B  #'B', (A2)+
     MOVE.B  #'S', (A2)+
     MOVE.B  #'R', (A2)+
-
+    
+    MOVE.L  #ea_type_branch,D1
+    
     JSR     EA_START                        ;DO WE HAVE EA?
     JMP     OP_FINISH
 
@@ -1226,8 +1263,8 @@ EA_TYPE_TABLE:
     JMP         EA_EXT
     JMP         EA_MOVEM
     JMP         EA_TRAP
-    JMP         EA_QUICK            ;ADDQ ,SUBQ
-    JMP         EA_BRANCH
+    JMP         EA_QUICK            ;DONE
+    JMP         EA_BRANCH           ;BRA;BSR
     JMP         EA_FINISH
 
 EA_FINISH:
@@ -1412,10 +1449,6 @@ EA_MOVEM:
     JSR    EA_JMP_HELPER
     MOVE.B  #',',(A2)+                  ;add ',' to buffer
 
-    
-
-
-
 EA_TRAP:
 
 
@@ -1430,9 +1463,16 @@ EA_QUICK:
     MOVE.B  #'#',(A2)+                  ;add a # to buffer
     MOVE.B  #'$',(A2)+                  ;add a $ to buffer
     
-    
     MOVE.L  D0,D1                       ;should move into D1
     
+    ;check for MOVEQ
+    LSR.W   #right6,D1
+    LSR.W   #right6,D1  
+    CMP.W   #$7,D1
+    BEQ     EA_QUICK_MOVEQ
+    
+    CLR     D1                          ;else not MOVEQ, reset D1 and continue with ADDQ / SUBQ
+    MOVE.L  D0,D1
     ANDI.W  #dest_reg,D1                ;isolate destination register(11,10,9)
     LSR.W   #right8,D1                  ;shift 8 times
     LSR.W   #right1,D1                  ;shift 1 time for total of 9 times
@@ -1465,38 +1505,74 @@ EA_QUICK:
     ;CMP.W       #$5,D1
     ;BEQ         EA_ADDQ_SUBQ
     
-
-
-EA_ADDQ_SUBQ:
-    ;CHECK BIT 8 FOR ADDQ OR SUBQ
-    CMP.W       #nibble2,D1
-    LSR.W       #right7,D1     
-    ANDI.W      #1,D1
-    CMP.B       #0,D1
-    BEQ         EA_ADDQ
-    CMP.B       #1,D1  
-    BEQ         EA_SUBQ
-    ;HANDLE ERROR       
-
-
-EA_ADDQ:
+EA_QUICK_MOVEQ:
+    MOVE.L  D0,D1
+    ANDI.W  #$00FF,D1               ;isolate bits 7-0
     
+    ;our bits are isolated in D1, move to D7 for ITOA function
+    MOVE.L  D1,D7
+    JSR     EA_ITOA_BYTE_CONVERT
+    
+    MOVE.B  #',',(A2)+                  ;add ',' to buffer
+    MOVE.B  #'D',(A2)+                  ;add ',' to buffer
+    MOVE.L  D0,D1
+    ANDI.W  #nibble2,D1
+    LSR.W   #8,D1
+    LSR.W   #1,D1
+    
+    ;at this point we have our number, so convert to ASCII and put on buffer
+    ADDI.B  #$30,D1                     ;convert to ASCII
+    MOVE.B  D1,(A2)+                    ;put on buffer
 
-
-EA_SUBQ:
-
-
-
+    JMP     EA_FINISH
 
 EA_BRANCH:
+    ;PROGRAM COUNTER @ A5
+    ;BRA or BSR
+    ;displacement bits are 7-0 
+    MOVE.L  D0,D1
+    ANDI.W  #$00FF,D1               ;isolate bits 7-0
+    ;PERFORM CHECKS 0000 0000 = WORD VALUE, 1111 1111 = LONG VALUE
+    
+    CMP.B   #$00,D1
+    BEQ     EA_BRANCH_16
+    BRA     EA_BRANCH_32
 
 
 
+EA_BRANCH_16:
+    MOVE.W  (A5),D1                    ;CHECK WHERE POINTER IS WHEN HITS HERE
+    ;D1 WILL HAVE OUR DISPLACEMENT (0E32)
+    ;ADD 0E32 TO PC + 2
+    MOVE.W  D1,D7
+    ADD.W   A5,D7
+    ;SUBI.B  #2,D7
+    
+    MOVE.B  #$09, (A2)+                 ;adds a ' ' to buffer
+    MOVE.B  #'$',(A2)+                  ;add '$' to buffer
+    
+    ;convert to ASCII and put on buffer
+    ;D7 HAS DISPLACEMENT   
+    JSR     BRANCH_16_ITOA
+    
+    JMP     EA_FINISH
+
+EA_BRANCH_32:
+    ;come back and implement branch 32
 
 
 
-
-
+BRANCH_16_ITOA:
+    ;D7 HAS OUR DISPLACEMENT... CONVERT TO ASCII!   ;D7 = 1234
+    LSR.W   #right8,D7                              ;D7 = 0012
+    JSR     EA_ITOA_BYTE_CONVERT                    ;BUFFER WILL HAVE 12
+    MOVE.W  (A5)+,D7                                ;D7 = 0E32
+    ADD.W   A5,D7                                   ;D7 = 123
+    SUBI.B  #2,D7                                   ;SUBI 2 to account for post increment of A5
+    ANDI.W  #$00FF,D7                               ;D7 = 0034
+    JSR     EA_ITOA_BYTE_CONVERT                    ;BUFFER WILL HAVE 1234
+    
+    JMP     EA_ITOA_DONE
 
 EA_JMP_HELPER
     JMP     0(A0,D4)
@@ -1747,6 +1823,7 @@ buffer                  ;storing op code
     
 
     END    START        ; last line of source
+
 
 
 
