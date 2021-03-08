@@ -28,7 +28,7 @@ right12             EQU     12      ;shift 12 to extract 3rd byte
 right16             EQU     16      ;shift 16 to extract 2nd byte
 right24             EQU     24      ;shift 24 to extract 1st byte
 dest_mode           EQU     $01C0   ; --> 0000 0001 1100 0000 (used for destination in MOVE/MOVEA
-
+dest_reg            EQU     $0E00   ;destination register
 
 ea_type_immediate   EQU     0
 ea_type_move        EQU     1
@@ -1094,7 +1094,7 @@ ATOI_DONE
     MOVE.L         D4,(A1)                      ;at this point, move the new address in D4 to mem location                                
     RTS                                         ;used to RTS after a branch statement
 
-;************************************* ITOA ***********************************************************************************************************
+;************************************* ITOA *******************************************************************************************************************
 ;A0
 ;A1
 ;A2 = buffer (this is our decoded string that will print to screen)
@@ -1226,7 +1226,7 @@ EA_TYPE_TABLE:
     JMP         EA_EXT
     JMP         EA_MOVEM
     JMP         EA_TRAP
-    JMP         EA_QUICK            ;ADDQ
+    JMP         EA_QUICK            ;ADDQ ,SUBQ
     JMP         EA_BRANCH
     JMP         EA_FINISH
 
@@ -1426,12 +1426,45 @@ EA_QUICK:
     ;FIGURE WHAT KIND? (ADDQ,SUBQ,MOVEQ)
     ;ADDQ/SUBQ  -->  opcode = 0101 (stored in D0)
     ;MOVEQ      -->  opcode = 0111 (stored in D0)
-    MOVE.L      D0,D1               ;should move into D1
-    LSR.W       #right12,D1         ;shift D1 by 12 bits, leaving just 4 bits
+    MOVE.B  #$09, (A2)+                 ;adds a ' ' to buffer
+    MOVE.B  #'#',(A2)+                  ;add a # to buffer
+    MOVE.B  #'$',(A2)+                  ;add a $ to buffer
     
-    CMP.W       #$5,D1
-    BEQ         EA_ADDQ_SUBQ
-
+    
+    MOVE.L  D0,D1                       ;should move into D1
+    
+    ANDI.W  #dest_reg,D1                ;isolate destination register(11,10,9)
+    LSR.W   #right8,D1                  ;shift 8 times
+    LSR.W   #right1,D1                  ;shift 1 time for total of 9 times
+    
+    ;at this point we have our number, so convert to ASCII and put on buffer
+    ADDI.B  #$30,D1                     ;convert to ASCII
+    MOVE.B  D1,(A2)+                    ;put on buffer
+    
+    
+    ;ready for destination address
+    MOVE.B  #',',(A2)+                  ;add ',' to buffer  
+    LEA     EA_MODE_TABLE,A0            ;load table
+    
+    
+    ;isolate source mode
+    MOVE.L  D0,D4
+    LSR.W   #3,D4
+    ANDI.W  #$7,D4
+    MULU    #6,D4
+        
+    ;isolate source register
+    MOVE.L  D0,D5
+    ANDI.W  #$7,D5
+    
+    JSR    EA_JMP_HELPER
+    
+    JMP     EA_FINISH
+    
+    ;LSR.W       #right12,D1         ;shift D1 by 12 bits, leaving just 4 bits      --> gives shift count error
+    ;CMP.W       #$5,D1
+    ;BEQ         EA_ADDQ_SUBQ
+    
 
 
 EA_ADDQ_SUBQ:
@@ -1714,6 +1747,7 @@ buffer                  ;storing op code
     
 
     END    START        ; last line of source
+
 
 
 
