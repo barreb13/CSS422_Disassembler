@@ -42,6 +42,9 @@ ea_type_movem       EQU     6
 ea_type_trap        EQU     7
 ea_type_quick       EQU     8
 ea_type_branch      EQU     9
+ea_type_math        EQU     10
+ea_type_rotation    EQU     11
+
 
 ;flags???
 
@@ -357,8 +360,15 @@ opcode0111:
 
 ;DIVU (DIVS, OR)                                                    $8
 opcode1000:
-    JMP         OP_DIVU
-
+    MOVE.L      D0,D1
+    ANDI.W      #nibble2,D1
+    LSR.W       #8,D1
+    ANDI.B      #1,D1
+    CMP.B       #0,D1
+    BEQ         OP_DIVU
+    CMP.B       #1,D1
+    BEQ         OP_DIVS
+    ;HANDLE ERROR
 
 ;SUB                                                                $9
 opcode1001:
@@ -377,8 +387,15 @@ opcode1011:
 
 ;MULU (MULS, AND)                                                   $C
 opcode1100:
-    JMP         OP_MULU
-
+    MOVE.L      D0,D1
+    ANDI.W      #nibble2,D1
+    LSR.W       #8,D1
+    ANDI.B      #1,D1
+    CMP.B       #0,D1
+    BEQ         OP_MULU
+    CMP.B       #1,D1
+    BEQ         OP_MULS
+    ;HANDLE ERROR
 
 ;ADD, ADDA                                                          $D
 opcode1101:
@@ -848,15 +865,23 @@ OP_DIVU:
     MOVE.B  #'I', (A2)+
     MOVE.B  #'V', (A2)+
     MOVE.B  #'U', (A2)+
-    ;MOVE.B  #'.', (A2)+
-    ;MOVE.B  #'W', (A2)+  
+  
+    MOVE.L  #ea_type_math, D1                   ;preps for EA_START and puts 10 into D1
   
     JSR     EA_START
     JMP     OP_FINISH    
 
 
 OP_DIVS  ;(optional)
-;implement later if needed
+    MOVE.B  #'D', (A2)+
+    MOVE.B  #'I', (A2)+
+    MOVE.B  #'V', (A2)+
+    MOVE.B  #'S', (A2)+
+  
+    MOVE.L  #ea_type_math, D1                   ;preps for EA_START and puts 10 into D1
+  
+    JSR     EA_START
+    JMP     OP_FINISH   
 
 
 OP_OR  ;(optional)
@@ -868,11 +893,9 @@ OP_SUB:
     MOVE.B  #'U', (A2)+
     MOVE.B  #'B', (A2)+
 
-    ;to determine size... bits 7 and 6? (.b, .w, .l)
-    ;D0 HAS COMPLETE OP CODE INSTRUCTION (XXXX)
+    JSR     OP_CHECK_SIZE                       ;call OP_CHECK_SIZE to append a .b/.w/.l
     
-    ;call OP_CHECK_SIZE to append a .b/.w/.l
-    JSR     OP_CHECK_SIZE
+    MOVE.L  #ea_type_math, D1                   ;preps for EA_START and puts 10 into D1
     
     ;at this point it will return with SUB.X and go to EA_START
     JSR     EA_START
@@ -883,9 +906,10 @@ OP_CMP:
     MOVE.B  #'C', (A2)+
     MOVE.B  #'M', (A2)+
     MOVE.B  #'P', (A2)+
-
-    ;call OP_CHECK_SIZE to append a .b/.w/.l    
-    JSR     OP_CHECK_SIZE
+  
+    JSR     OP_CHECK_SIZE                       ;call OP_CHECK_SIZE to append a .b/.w/.l  
+    
+    MOVE.L  #ea_type_math, D1                   ;preps for EA_START and puts 10 into D1
     
     ;at this point it will return with SUB.X and go to EA_START
     JSR     EA_START
@@ -903,11 +927,21 @@ OP_MULU:
     MOVE.B  #'L', (A2)+
     MOVE.B  #'U', (A2)+
 
+    MOVE.L  #ea_type_math, D1                   ;preps for EA_START and puts 10 into D1
+    
     JSR     EA_START
     JMP     OP_FINISH    
 
 OP_MULS:  ;(optional)
-;implement later if needed
+    MOVE.B  #'M', (A2)+
+    MOVE.B  #'U', (A2)+
+    MOVE.B  #'L', (A2)+
+    MOVE.B  #'S', (A2)+
+
+    MOVE.L  #ea_type_math, D1                   ;preps for EA_START and puts 10 into D1
+
+    JSR     EA_START
+    JMP     OP_FINISH
 
 
 OP_AND:  ;(optional)
@@ -921,6 +955,8 @@ OP_ADD:
 
     ;call OP_CHECK_SIZE to append a .b/.w/.l
     JSR     OP_CHECK_SIZE
+    
+    MOVE.L  #ea_type_math, D1                   ;preps for EA_START and puts 10 into D1
 
     JSR     EA_START
     JMP     OP_FINISH
@@ -933,6 +969,8 @@ OP_ADDA:
 
     ;call OP_CHECK_SIZE to append a .b/.w/.l
     JSR     OP_CHECK_SIZE_ADDA
+    
+    MOVE.L  #ea_type_math, D1                   ;preps for EA_START and puts 10 into D1
 
     JSR     EA_START
     JMP     OP_FINISH
@@ -945,7 +983,9 @@ OP_ASL:
 
     ;call OP_CHECK_SIZE to append a .b/.w/.l
     JSR     OP_CHECK_SIZE
-
+    
+    MOVE.L  #ea_type_rotation, D1                   ;preps for EA_START and puts 10 into D1
+    
     JSR     EA_START
     JMP     OP_FINISH
 
@@ -957,6 +997,8 @@ OP_ASR:
 
     ;call OP_CHECK_SIZE to append a .b/.w/.l
     JSR     OP_CHECK_SIZE
+    
+    MOVE.L  #ea_type_rotation, D1                   ;preps for EA_START and puts 10 into D1
 
     JSR     EA_START
     JMP     OP_FINISH
@@ -1255,17 +1297,19 @@ EA_START:
 
 
 EA_TYPE_TABLE:
-    JMP         EA_IMMEDIATE        ;DONE
-    JMP         EA_MOVE             ;DONE
-    JMP         EA_MOVEA            ;DONE
-    JMP         EA_LEA              ;DONE
-    JMP         EA_DESTONLY         ;JMP, CLR
-    JMP         EA_EXT
-    JMP         EA_MOVEM
-    JMP         EA_TRAP
-    JMP         EA_QUICK            ;DONE
-    JMP         EA_BRANCH           ;BRA;BSR
-    JMP         EA_FINISH
+    JMP         EA_IMMEDIATE        ;0  DONE
+    JMP         EA_MOVE             ;1  DONE
+    JMP         EA_MOVEA            ;2  DONE
+    JMP         EA_LEA              ;3  DONE
+    JMP         EA_DESTONLY         ;4  JMP, CLR
+    JMP         EA_EXT              ;5
+    JMP         EA_MOVEM            ;6
+    JMP         EA_TRAP             ;7
+    JMP         EA_QUICK            ;8  DONE
+    JMP         EA_BRANCH           ;9  DONE
+    JMP         EA_MATH             ;10 DONE    DIVU, DIVS, SUB, CMP, MULU, ADD, ADDA
+    JMP         EA_ROTATION         ;11         ASL, ASR, ???  
+    JMP         EA_FINISH           ;
 
 EA_FINISH:
     RTS ; TAKE OUT LATER
@@ -1574,6 +1618,110 @@ BRANCH_16_ITOA:
     
     JMP     EA_ITOA_DONE
 
+
+EA_MATH:
+    ;source mode 3, 4, 5 | source register 0, 1, 2 | destination register 11, 10, 9
+    MOVE.B  #$09, (A2)+             ;add a ' ' to buffer
+    LEA     EA_MODE_TABLE,A0        ;load mode table
+    
+    ;isolate source mode
+    MOVE.L  D0,D4
+    LSR.W   #3,D4
+    ANDI.W  #$7,D4
+    MULU    #6,D4
+    
+    ;isolate source register
+    MOVE.L  D0,D5
+    ANDI.W  #$7,D5
+    
+    JSR     EA_JMP_HELPER
+    
+    MOVE.B  #',',(A2)+              ;add a ',' to buffer
+    
+    ;condition for ADDA - opcode == 1101 && bits 7,6 == 11
+    ;check for ADDA and leave if yes, otherwise continue
+    MOVE.L  D0,D1                   ;complete opcode in D1
+    LSR.W   #6,D1                   ;shift right 6
+    LSR.W   #6,D1                   ;shift another 6 to = 12 total
+    
+    CMP     #$D,D1                  ;check if opcode = 1101
+    BNE     EA_MATH_CONTINUE        ;if not 1101, skip and go to math
+    
+    ;if we are here, we know opcode is 1101 and further check
+    MOVE.L  D0,D1
+    LSR.W   #6,D1
+    ANDI.W  #3,D1
+    CMP.B   #3,D1
+    BNE     EA_MATH_CONTINUE
+    
+    ;if d1 == 3, both conditions met so process as ADDA
+    ;destination mode is 1 (address register)
+    MOVE.L  #1,D4
+    MULU    #6,D4
+    
+    ;isolate destination register 
+    MOVE.L  D0,D5
+    LSR.W   #4,D5
+    LSR.W   #5,D5                      
+    ANDI.W  #$7,D5   
+ 
+    JSR     EA_JMP_HELPER 
+    JMP     EA_FINISH
+        
+EA_MATH_CONTINUE:       
+    ;destination mode is 0 (data register)
+    MOVE.L  #0,D4
+    MULU    #6,D4
+    
+    ;isolate destination register 
+    MOVE.L  D0,D5
+    LSR.W   #4,D5
+    LSR.W   #5,D5                      
+    ANDI.W  #$7,D5  
+    
+    JSR     EA_JMP_HELPER 
+    JMP     EA_FINISH
+    
+
+EA_ROTATION:
+    MOVE.B  #$09, (A2)+                 ;adds a ' ' to buffer
+    MOVE.L  D0,D1                       ;complete opcode
+    LSR.W   #5,D1                       ;shift right 5
+    ANDI.W  #1,D1
+    
+    CMP     #0,D1
+    BEQ     EA_ROTATION_IMMEDIATE       ;it is immediate value
+    BRA     EA_ROTATION_REGISTER        ;else register 
+
+EA_ROTATION_CONTINUE:
+    MOVE.L  D0,D1                       ;get rotation value
+    ANDI.W  #nibble2,D1                 ;isolate nibble 2
+    LSR.W   #8,D1
+    LSR.W   #1,D1                       :total of 9 shifts right
+    
+    ;at this point we have our number, so convert to ASCII and put on buffer
+    ADDI.B  #$30,D1                     ;convert to ASCII
+    MOVE.B  D1,(A2)+                    ;put on buffer
+    
+    MOVE.B  #',',(A2)+                  ;add ',' to buffer 
+    MOVE.B  #'D',(A2)+                  ;add 'D' to buffer
+    
+    MOVE.L  D0,D1                       ;complete opcode
+    ANDI.W  #7,D1                       
+    
+    ADDI.B  #$30,D1                     ;convert to ASCII
+    MOVE.B  D1,(A2)+                    ;put on buffer
+    
+    JMP     EA_FINISH                   ;done
+
+EA_ROTATION_IMMEDIATE:
+    MOVE.B  #'#',(A2)+                  ;add '#' to buffer
+    BRA     EA_ROTATION_CONTINUE
+    
+EA_ROTATION_REGISTER:
+    MOVE.B  #'D',(A2)+                  ;add '#' to buffer
+    BRA     EA_ROTATION_CONTINUE
+    
 EA_JMP_HELPER
     JMP     0(A0,D4)
 
@@ -1823,6 +1971,9 @@ buffer                  ;storing op code
     
 
     END    START        ; last line of source
+
+
+
 
 
 
