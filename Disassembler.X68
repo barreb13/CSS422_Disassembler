@@ -1478,20 +1478,71 @@ EA_MOVEM:
     MOVE.B  #$09, (A2)+                     ;adds a ' ' to buffer
     LEA     EA_MODE_TABLE,A0                ;load table
     
-    ;source mode are bits 3,4,5   |         ;source register are bits 0,1,2
+    MOVE.L  D0,D1                           ;D1 has $4890
+    MOVE.W  (A5)+,D2                        ;come back and verify D2 is free!!!!!
     
-    ;isolate source mode
-    MOVE.L  D0,D4
-    LSR.W   #3,D4
-    ANDI.W  #$7,D4
-    MULU    #6,D4
-        
-    ;isolate source register
-    MOVE.L  D0,D5
-    ANDI.W  #$7,D5
+    ;D1 = 4890 | D2 = 0080 (source)
     
-    JSR    EA_JMP_HELPER
-    MOVE.B  #',',(A2)+                  ;add ',' to buffer
+    ;if direction (bit 10) == 0, destination is in opcode, source is in the second operand
+    ;if direction (bit 10) == 1, the source is in the opcode, destination is in the operand
+    
+    ;check direction (bit 10)
+    ANDI.W  #nibble2,D1
+    LSR.W   #5,D1
+    LSR.W   #5,D1                           ;total of 10 shifts
+    ANDI.W  #1,D1
+    CMP.B   #0,D1
+    BEQ     EA_MOVEM_REG_TO_MEM
+    CMP.B   #1,D1
+    BEQ     EA_MOVEM_MEM_TO_REG
+    
+    
+;MOVEM.W    D/A2,(A7)    
+EA_MOVEM_REG_TO_MEM:                        ;bit 10 == 0
+    ;check if data register or address register
+    CLR     D6
+    MOVE.W  D2,D6
+    ANDI.W  #$FF00,D6                       ;isolate nibble 1 and 2
+    CMP.W   #0,D6                           ;check if 0
+    BEQ     EA_MOVEM_DATAREG_TO_MEM        ;if 0, source is data register
+    BRA     EA_MOVEM_ADDRREG_TO_MEM        ;else it is address register
+
+
+EA_MOVEM_DATAREG_TO_MEM:    
+    MOVE.L  D2,D6                           ;replenish D6 with stuff
+    CLR     D7
+    MOVE.B  #'D',(A2)+                      ;add 'D' to buffer
+    BRA     MOVEM_LOOP                      ;enter loop to get number
+
+
+
+EA_MOVEM_ADDRREG_TO_MEM:
+
+
+
+
+
+
+
+
+
+;MOVEM.W (A7),D/A2
+EA_MOVEM_MEM_TO_REG:                        ;bit 10 == 1
+ 
+
+
+
+
+
+MOVEM_LOOP    
+    LSR.W   #1,D6
+    ADDI    #1,D7
+    BCC     MOVEM_LOOP_AGAIN
+    
+
+EA_MOVEM_REG_TO_MEM_ADDR:
+
+    
 
 EA_TRAP:
 
@@ -1971,6 +2022,7 @@ buffer                  ;storing op code
     
 
     END    START        ; last line of source
+
 
 
 
