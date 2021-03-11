@@ -1493,7 +1493,7 @@ EA_MOVEM:
     MOVE.B  #$09, (A2)+                     ;adds a ' ' to buffer
     LEA     EA_MODE_TABLE,A0                ;load table
     
-    MOVE.L  D0,D1                           ;D1 has $4890
+    MOVE.L  D0,D1                           ;
     MOVE.W  (A5)+,D2                        ;come back and verify D2 is free!!!!!
     
     ;D1 = 4890 | D2 = 0080 (source)
@@ -1526,24 +1526,44 @@ EA_MOVEM_REG_TO_MEM:                        ;bit 10 == 0
 EA_MOVEM_DATAREG_TO_MEM:    
     MOVE.L  D2,D6                           ;replenish D6 with stuff
     CLR     D7
+    
+    MOVE.B  #0,D7
+    CLR D5
+    CLR D3
+    
     MOVE.B  #'D',(A2)+                      ;add 'D' to buffer
     BSR     MOVEM_LOOP                      ;enter loop to get number
     
-    ;convert d7 to ascii and add to buffer
-    ADDI.B  #$30,D7                         ;convert to ASCII
-    MOVE.B  D7,(A2)+                        ;put on buffer
+    
+    ;convert d3 to ascii and add to buffer
+    ADDI.B  #$30,D3                         ;convert to ASCII
+    MOVE.B  D3,(A2)+                        ;put on buffer
+    
+    
+    ;check d5 and handle
+    ADDI.B  #$30,D5
+    
+    CLR     D1
+    MOVE.W  #0,D1                           ;FLAG TO INDICATE D
+    
+    JSR     MOVEM_CHECK_MULTIPLE
     
     MOVE.B  #',',(A2)+                      ;add ',' to buffer
-    ;MOVEM.s D7,
-    
+
     LEA     EA_MODE_TABLE,A0                ;load table
     
     ;isolate source mode
     MOVE.L  D0,D4
-    LSR.W   #3,D4
+    LSR.W   #3,D4   
     ANDI.W  #$7,D4
+    
+    ;check for mode 111 -> immediate data
+    CMP.W   #$7,D4
+    ;if immediate data, leave and get immediate data rather than another register
+    BEQ     EA_MOVEM_IMMEDIATE_DESTINATION     
+    
     MULU    #6,D4
-        
+     
     ;isolate source register
     MOVE.L  D0,D5
     ANDI.W  #$7,D5
@@ -1551,16 +1571,55 @@ EA_MOVEM_DATAREG_TO_MEM:
     JSR    EA_JMP_HELPER
     JMP     EA_FINISH
 
+
+    
+MOVEM_CHECK_MULTIPLE:
+    CMP     D3,D5
+    BNE     MOVEM_MULTIPLE
+    RTS
+    
+MOVEM_MULTIPLE:
+    MOVE.B  #'-',(A2)+                      ;add '-' to buffer
+    ;CHECK D1 FOR A OR D
+    CMP.W   #0,D1                           ;check if 0 --> D
+    BEQ     MOVEM_MULTIPLE_D
+    CMP.W   #1,D1
+    BEQ     MOVEM_MULTIPLE_A
+
+    RTS
+
+MOVEM_MULTIPLE_D:
+    MOVE.B  #'D',(A2)+                      ;add 'D' to buffer
+    MOVE.B  D5,(A2)+                        ;put on buffer
+    RTS
+
+MOVEM_MULTIPLE_A:
+    MOVE.B  #'A',(A2)+                      ;add 'D' to buffer
+    MOVE.B  D5,(A2)+                        ;put on buffer
+    RTS
+
 EA_MOVEM_ADDRREG_TO_MEM:
     MOVE.L  D2,D6                           ;replenish D6 with stuff
     CLR     D7
+    
+    MOVE.B  #0,D7
+    CLR D5
+    CLR D3
+    
     MOVE.B  #'A',(A2)+                      ;add 'A' to buffer
     LSR.W   #8,D6                           ;shift 8 times
     BSR     MOVEM_LOOP                      ;enter loop to get number
     
-    ;convert d7 to ascii and add to buffer
-    ADDI.B  #$30,D7                         ;convert to ASCII
-    MOVE.B  D7,(A2)+                        ;put on buffer
+    ;convert d3 to ascii and add to buffer
+    ADDI.B  #$30,D3                         ;convert to ASCII
+    MOVE.B  D3,(A2)+                        ;put on buffer
+    
+    ADDI.B  #$30,D5
+    
+    CLR     D1
+    MOVE.W  #1,D1                           ;FLAG TO INDICATE A
+    
+    JSR MOVEM_CHECK_MULTIPLE
     
     MOVE.B  #',',(A2)+                      ;add ',' to buffer
     ;MOVEM.s D7,
@@ -1588,6 +1647,13 @@ EA_MOVEM_MEM_TO_REG:                        ;bit 10 == 1
     MOVE.L  D0,D4
     LSR.W   #3,D4
     ANDI.W  #$7,D4
+    
+    
+    ;check for mode 111 -> immediate data
+    CMP.W   #$7,D4
+    ;if immediate data, leave and get immediate data rather than another register
+    BEQ     EA_MOVEM_IMMEDIATE_SOURCE
+
     MULU    #6,D4
         
     ;isolate source register
@@ -1608,6 +1674,11 @@ EA_MOVEM_MEM_TO_REG:                        ;bit 10 == 1
 EA_MOVEM_MEM_TO_DATAREG: 
     MOVE.L  D2,D6                           ;replenish D6 with stuff
     CLR     D7
+    
+    MOVE.B  #0,D7
+    CLR D5
+    CLR D3
+    
     MOVE.B  #'D',(A2)+                      ;add 'D' to buffer
     BSR     MOVEM_LOOP                      ;enter loop to get number
     
@@ -1620,6 +1691,13 @@ EA_MOVEM_MEM_TO_DATAREG:
 EA_MOVEM_MEM_TO_ADDRREG:
     MOVE.L  D2,D6                           ;replenish D6 with stuff
     CLR     D7
+    
+    
+    MOVE.B  #0,D7
+    CLR D5
+    CLR D3
+    
+    
     MOVE.B  #'A',(A2)+                      ;add 'A' to buffer
     LSR.W   #8,D6                           ;shift 8 times
     BSR     MOVEM_LOOP                      ;enter loop to get number
@@ -1631,12 +1709,64 @@ EA_MOVEM_MEM_TO_ADDRREG:
     JMP     EA_FINISH
 
 MOVEM_LOOP  
-    ADDI    #1,D7  
+    ;D1 = min_set_flag (0 = not set, 1 = set) | D3 = MIN | D5 = MAX | D7 = COUNTER (STARTS AT 0)
+    ;D6 = OUR SECOND OPERAND
+     
     LSR.W   #1,D6
-    BCC     MOVEM_LOOP
+    BCS     MOVEM_CARRY
     
-    SUBI    #1,D7                           ;subtract 1 to account for extra carry
     RTS 
+
+MOVEM_CARRY:
+    CMP         #0,D1
+    BEQ         MOVEM_SET_MIN
+    
+    MOVE.W      D7,D5
+    ADDI.W      #1,D7  
+    JMP         MOVEM_LOOP
+
+MOVEM_SET_MIN:
+    MOVE.W      D7,D3           ;set min
+    MOVE.W      #1,D1           ;set flag
+    ADDI.W      #1,D7  
+    JMP         MOVEM_LOOP
+
+
+
+EA_MOVEM_IMMEDIATE_DESTINATION:
+    ;GET NEXT WORD VALUE AT A5 AND INCREMENT
+    MOVE.W  (A5),D7                        ;immediate value is in D7 now
+    MOVE.B  #'$',(A2)+                      ;add '$' to buffer
+    
+    ;convert to ascii and put on buffer
+    JSR     EA_ITOA_WORD
+
+    JMP     EA_FINISH
+
+EA_MOVEM_IMMEDIATE_SOURCE:
+    ;GET NEXT WORD VALUE AT A5 AND INCREMENT
+    MOVE.W  (A5),D7                        ;immediate value is in D7 now
+    MOVE.B  #'$',(A2)+                      ;add '$' to buffer
+    
+    ;convert to ascii and put on buffer
+    JSR     EA_ITOA_WORD
+
+    ;TRY THIS
+    MOVE.B  #',',(A2)+                      ;add ',' to buffer
+    
+    ;our operand is in D2
+    CLR     D6
+    MOVE.W  D2,D6
+    ANDI.W  #$FF00,D6                       ;isolate nibble 1 and 2
+    CMP.W   #0,D6                           ;check if 0
+    BEQ     EA_MOVEM_MEM_TO_DATAREG        ;if 0, source is data register
+    BRA     EA_MOVEM_MEM_TO_ADDRREG        ;else it is address register
+
+
+
+
+
+
 
 EA_TRAP:
 
@@ -2116,6 +2246,7 @@ buffer                  ;storing op code
     
 
     END    START        ; last line of source
+
 
 
 
