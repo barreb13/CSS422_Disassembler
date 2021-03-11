@@ -1,7 +1,7 @@
 *-----------------------------------------------------------
 * Title      : Disassembler V1.8(ish)
 * Written by : Brent and Parker
-* Date       : 3/4/21
+* Date       : 3/10/21
 * Description: Final Project for CSS 422
 *-----------------------------------------------------------
 
@@ -738,7 +738,7 @@ OP_MOVEM:
     MOVE.B  #'M', (A2)+
     
     ;call OP_CHECK_SIZE to append a .b/.w/.l
-    JSR     OP_CHECK_SIZE
+    JSR     OP_CHECK_SIZE_MOVEM
     
     MOVE.L  #ea_type_movem, D1                   ;preps for EA_START and puts 6 into D1
     
@@ -1073,6 +1073,21 @@ OP_CHECK_SIZE:
     CMP     #01,D1                              ;compare bits to 01
     BEQ     OP_SIZE_WORD                        ;if bits == 01, size word
     BRA     OP_SIZE_LONG                        ;else size long
+
+
+OP_CHECK_SIZE_MOVEM:
+    CLR     D1                                  ;CLEAR D1
+    CLR     D2                                  ;clear D2
+    MOVE.L  D0,D1                               ;D0 and D1 both have complete opcode
+    ANDI.W  #nibble3,D1                         ;isolate nibble 3
+    MOVE.B  #right6, D2                         ;putting immediate value 6 in D2
+    LSR.W   D2, D1                              ;bits 7,6 --> bits 1,0
+    
+    ANDI.W  #1,D1    
+    CMP     #0,D1                              ;compare bits 1,0 to 00
+    BEQ     OP_SIZE_WORD                        ;if bits == 00, size WORD
+    CMP     #1,D1                              ;compare bits to 01
+    BEQ     OP_SIZE_LONG                       ;if bits == 01, size LONG
 
 OP_SIZE_BYTE
     MOVE.B  #'.', (A2)+
@@ -1512,37 +1527,116 @@ EA_MOVEM_DATAREG_TO_MEM:
     MOVE.L  D2,D6                           ;replenish D6 with stuff
     CLR     D7
     MOVE.B  #'D',(A2)+                      ;add 'D' to buffer
-    BRA     MOVEM_LOOP                      ;enter loop to get number
-
-
+    BSR     MOVEM_LOOP                      ;enter loop to get number
+    
+    ;convert d7 to ascii and add to buffer
+    ADDI.B  #$30,D7                         ;convert to ASCII
+    MOVE.B  D7,(A2)+                        ;put on buffer
+    
+    MOVE.B  #',',(A2)+                      ;add ',' to buffer
+    ;MOVEM.s D7,
+    
+    LEA     EA_MODE_TABLE,A0                ;load table
+    
+    ;isolate source mode
+    MOVE.L  D0,D4
+    LSR.W   #3,D4
+    ANDI.W  #$7,D4
+    MULU    #6,D4
+        
+    ;isolate source register
+    MOVE.L  D0,D5
+    ANDI.W  #$7,D5
+    
+    JSR    EA_JMP_HELPER
+    JMP     EA_FINISH
 
 EA_MOVEM_ADDRREG_TO_MEM:
-
-
-
-
-
-
-
-
+    MOVE.L  D2,D6                           ;replenish D6 with stuff
+    CLR     D7
+    MOVE.B  #'A',(A2)+                      ;add 'A' to buffer
+    LSR.W   #8,D6                           ;shift 8 times
+    BSR     MOVEM_LOOP                      ;enter loop to get number
+    
+    ;convert d7 to ascii and add to buffer
+    ADDI.B  #$30,D7                         ;convert to ASCII
+    MOVE.B  D7,(A2)+                        ;put on buffer
+    
+    MOVE.B  #',',(A2)+                      ;add ',' to buffer
+    ;MOVEM.s D7,
+    
+    LEA     EA_MODE_TABLE,A0                ;load table
+    
+    ;isolate source mode
+    MOVE.L  D0,D4
+    LSR.W   #3,D4
+    ANDI.W  #$7,D4
+    MULU    #6,D4
+        
+    ;isolate source register
+    MOVE.L  D0,D5
+    ANDI.W  #$7,D5
+    
+    JSR    EA_JMP_HELPER
+    JMP     EA_FINISH
 
 ;MOVEM.W (A7),D/A2
 EA_MOVEM_MEM_TO_REG:                        ;bit 10 == 1
- 
+    LEA     EA_MODE_TABLE,A0                ;load table
+    
+    ;isolate source mode
+    MOVE.L  D0,D4
+    LSR.W   #3,D4
+    ANDI.W  #$7,D4
+    MULU    #6,D4
+        
+    ;isolate source register
+    MOVE.L  D0,D5
+    ANDI.W  #$7,D5
 
+    JSR    EA_JMP_HELPER
+    MOVE.B  #',',(A2)+                      ;add ',' to buffer
+    
+    ;our operand is in D2
+    CLR     D6
+    MOVE.W  D2,D6
+    ANDI.W  #$FF00,D6                       ;isolate nibble 1 and 2
+    CMP.W   #0,D6                           ;check if 0
+    BEQ     EA_MOVEM_MEM_TO_DATAREG        ;if 0, source is data register
+    BRA     EA_MOVEM_MEM_TO_ADDRREG        ;else it is address register
+        
+EA_MOVEM_MEM_TO_DATAREG: 
+    MOVE.L  D2,D6                           ;replenish D6 with stuff
+    CLR     D7
+    MOVE.B  #'D',(A2)+                      ;add 'D' to buffer
+    BSR     MOVEM_LOOP                      ;enter loop to get number
+    
+    ;convert d7 to ascii and add to buffer
+    ADDI.B  #$30,D7                         ;convert to ASCII
+    MOVE.B  D7,(A2)+                        ;put on buffer
 
+    JMP     EA_FINISH
+   
+EA_MOVEM_MEM_TO_ADDRREG:
+    MOVE.L  D2,D6                           ;replenish D6 with stuff
+    CLR     D7
+    MOVE.B  #'A',(A2)+                      ;add 'A' to buffer
+    LSR.W   #8,D6                           ;shift 8 times
+    BSR     MOVEM_LOOP                      ;enter loop to get number
+    
+    ;convert d7 to ascii and add to buffer
+    ADDI.B  #$30,D7                         ;convert to ASCII
+    MOVE.B  D7,(A2)+                        ;put on buffer
 
+    JMP     EA_FINISH
 
-
-MOVEM_LOOP    
+MOVEM_LOOP  
+    ADDI    #1,D7  
     LSR.W   #1,D6
-    ADDI    #1,D7
-    BCC     MOVEM_LOOP_AGAIN
+    BCC     MOVEM_LOOP
     
-
-EA_MOVEM_REG_TO_MEM_ADDR:
-
-    
+    SUBI    #1,D7                           ;subtract 1 to account for extra carry
+    RTS 
 
 EA_TRAP:
 
@@ -2022,6 +2116,7 @@ buffer                  ;storing op code
     
 
     END    START        ; last line of source
+
 
 
 
