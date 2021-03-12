@@ -135,18 +135,37 @@ GET_ENDING_ADDRESS:
 ;A5 = starting address
 ;A6 = ending address
 START_DECODING:
-    ;CLR.L   D2                             ;clear screen line counter
+    CLR.L   D2                             ;clear screen line counter
 
 DECODING_LOOP:
     JSR     OP_START                       ;get complete line of instruction to decode   
-    
 
-    ;print tot screen
+    ;RETURN FROM OP FINISH HERE
     
-    ;check if finished or if screen is filled
-    ;handle checks
-   
+    ;print buffer to screen
+    MOVE.B  #$0D, D0
+    LEA     buffer,A1
+    TRAP    #15
     
+    ;check if we have hit ending address (current memory past ending address)
+    CMP.L   A5,A6       ;THE SOURCE OPERAND IS SUBTRACTED FROM THE DESTINATION OPERAND (A6-A5)--> (600 - 400)
+    BLE     REPEAT_OR_FINISH
+    ADDI.B  #1,D2
+    CMP.B   #lines_per_screen,D2
+    BGE     FILLED_SCREEN
+    BRA     DECODING_LOOP
+    
+REPEAT_OR_FINISH:    
+    JMP     DONE
+
+FILLED_SCREEN:
+    MOVE.B  #14,D0
+    LEA     prompt_enter,A1
+    TRAP    #15
+    MOVE.B  #$05,D0
+    TRAP    #15
+    BRA     START_DECODING  
+       
 DONE:
     SIMHALT                                 ; halt simulator
 
@@ -176,7 +195,7 @@ OP_START
     ;get complete line? 
     ;everything happens in here
     
-    ;MOVEM.L         D2/A6, -(SP)
+    MOVEM.L         D2, -(SP)
 
     JSR         OP_DATA_CLR         ;clear buffer
     LEA         buffer, A2          ;A2 now points to buffer, which is cleared
@@ -199,14 +218,14 @@ OP_START
     JMP         0(A0,D1)            ;jumps to opcode table entry (A0 = OP_TABLE)
 
 OP_FINISH:
-    MOVEM.L     (SP)+, D2/A6
+    MOVEM.L     (SP)+,D2
     RTS                             ;returns to DECODING_LOOP !?!?!?!?!?
 
 
 OP_DATA_CLR:
     CLR.L       D3                  ; ? What is D3????
     ;MOVE.B      #buffer_size,D3     ; put 64 into D3
-    MOVE.B      #10,D3     ; put 10 into D3                                                                 ;delete after testing and use 64
+    MOVE.B      #64,D3          ; put 10 into D3                                                                 ;delete after testing and use 64
     LEA         buffer, A4          ; what address register?
 
 OP_DATA_CLR_LOOP:
@@ -1530,6 +1549,7 @@ EA_MOVEM_DATAREG_TO_MEM:
     MOVE.B  #0,D7
     CLR D5
     CLR D3
+    CLR D1
     
     MOVE.B  #'D',(A2)+                      ;add 'D' to buffer
     BSR     MOVEM_LOOP                      ;enter loop to get number
@@ -1605,6 +1625,7 @@ EA_MOVEM_ADDRREG_TO_MEM:
     MOVE.B  #0,D7
     CLR D5
     CLR D3
+    CLR D1
     
     MOVE.B  #'A',(A2)+                      ;add 'A' to buffer
     LSR.W   #8,D6                           ;shift 8 times
@@ -1678,33 +1699,48 @@ EA_MOVEM_MEM_TO_DATAREG:
     MOVE.B  #0,D7
     CLR D5
     CLR D3
+    CLR D1
     
     MOVE.B  #'D',(A2)+                      ;add 'D' to buffer
     BSR     MOVEM_LOOP                      ;enter loop to get number
     
     ;convert d7 to ascii and add to buffer
-    ADDI.B  #$30,D7                         ;convert to ASCII
-    MOVE.B  D7,(A2)+                        ;put on buffer
+    ADDI.B  #$30,D3                         ;convert to ASCII
+    MOVE.B  D3,(A2)+                        ;put on buffer
+
+    ;check multiple
+    ADDI.B  #$30,D5
+    
+    CLR     D1
+    MOVE.W  #0,D1                           ;FLAG TO INDICATE D
+    
+    JSR MOVEM_CHECK_MULTIPLE
 
     JMP     EA_FINISH
    
 EA_MOVEM_MEM_TO_ADDRREG:
     MOVE.L  D2,D6                           ;replenish D6 with stuff
-    CLR     D7
-    
+    CLR     D7  
     
     MOVE.B  #0,D7
     CLR D5
     CLR D3
-    
-    
+    CLR D1
+       
     MOVE.B  #'A',(A2)+                      ;add 'A' to buffer
     LSR.W   #8,D6                           ;shift 8 times
     BSR     MOVEM_LOOP                      ;enter loop to get number
     
     ;convert d7 to ascii and add to buffer
-    ADDI.B  #$30,D7                         ;convert to ASCII
-    MOVE.B  D7,(A2)+                        ;put on buffer
+    ADDI.B  #$30,D3                         ;convert to ASCII
+    MOVE.B  D3,(A2)+                        ;put on buffer
+
+    ;check multiple   
+    ADDI.B  #$30,D5 
+    CLR     D1
+    MOVE.W  #1,D1                           ;FLAG TO INDICATE A
+    
+    JSR MOVEM_CHECK_MULTIPLE
 
     JMP     EA_FINISH
 
@@ -1712,10 +1748,12 @@ MOVEM_LOOP
     ;D1 = min_set_flag (0 = not set, 1 = set) | D3 = MIN | D5 = MAX | D7 = COUNTER (STARTS AT 0)
     ;D6 = OUR SECOND OPERAND
      
-    LSR.W   #1,D6
+    LSR.W   #1,D6               ;1000
     BCS     MOVEM_CARRY
-    
-    RTS 
+    ADDI.W  #1,D7
+    CMP     #8,D7
+    BLE     MOVEM_LOOP
+    RTS
 
 MOVEM_CARRY:
     CMP         #0,D1
@@ -1727,6 +1765,7 @@ MOVEM_CARRY:
 
 MOVEM_SET_MIN:
     MOVE.W      D7,D3           ;set min
+    MOVE.W      D7,D5           ;set max
     MOVE.W      #1,D1           ;set flag
     ADDI.W      #1,D7  
     JMP         MOVEM_LOOP
@@ -2234,6 +2273,8 @@ error_message_4         DC.B    'Invalid Address: Must be less than $00FFFFFF',C
 
 error_message_5         DC.B    'Invalid Address: Must be greater than starting address',CR,LF,0
 
+prompt_enter            DC.B    'Hit Enter to Continue',CR,LF,0
+
 
 ascii_start:
     DS.w    10          ;specify size later?
@@ -2246,6 +2287,7 @@ buffer                  ;storing op code
     
 
     END    START        ; last line of source
+
 
 
 
