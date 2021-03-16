@@ -1,7 +1,7 @@
 *-----------------------------------------------------------
-* Title      : Disassembler V1.8(ish)
+* Title      : Disassembler V1.8
 * Written by : Brent and Parker
-* Date       : 3/10/21
+* Date       : 3/16/21
 * Description: Final Project for CSS 422
 *-----------------------------------------------------------
 
@@ -9,7 +9,7 @@
 CR                  EQU     $0D     ;carriage return
 LF                  EQU     $0a     ;line feed
 stack               EQU     $000A0000
-lines_per_screen    EQU     30
+lines_per_screen    EQU     15
 buffer_size         EQU     64      ;size of buffer
 nibble1             EQU     $F000   ;1st nibble in code (bits 15-12)
 nibble2             EQU     $0F00   ;2nd nibble in code (bits 11-8)
@@ -1539,8 +1539,85 @@ EA_MOVEM_REG_TO_MEM:                        ;bit 10 == 0
     ANDI.W  #$FF00,D6                       ;isolate nibble 1 and 2
     CMP.W   #0,D6                           ;check if 0
     BEQ     EA_MOVEM_DATAREG_TO_MEM        ;if 0, source is data register
-    BRA     EA_MOVEM_ADDRREG_TO_MEM        ;else it is address register
+    
+    MOVE.W  D2,D6
+    ANDI.W  #$00FF,D6
+    CMP.W   #0,D6
+    BEQ     EA_MOVEM_ADDRREG_TO_MEM        ;else it is address register
+    
+    
+    ;else, both are populated and we need to handle mixture
+    
+    MOVE.L  D2,D6
+    CLR     D7
+    
+    ANDI.W  #$00FF,D6
+    MOVE.B  #0,D7
+    CLR     D5
+    CLR     D3
+    CLR     D1
+    BSR     MOVEM_LOOP
+    
+    MOVE.B  #'D',(A2)+
+    ADDI.B  #$30,D3
+    MOVE.B  D3,(A2)+
+    
+    
+    ADDI.B  #$30,D5
+    CLR     D1
+    MOVE.W  #0,D1
+    
+    JSR MOVEM_CHECK_MULTIPLE
+    
+    MOVE.B  #'/',(A2)+
+    
+    MOVE.L  D2,D6
+    CLR D7
+    
+    ANDI.W  #$FF00,D6
+    LSR.W   #8,D6
+    MOVE.B  #0,D7
+    CLR     D5
+    CLR     D3
+    CLR     D1
+    MOVE.B  #'A',(A2)+
+    
+    BSR     MOVEM_LOOP
+    
+    ADDI.B  #$30,D3
+    MOVE.B  D3,(A2)+
+    
+    ADDI.B  #$30,D5
+    CLR     D1
+    MOVE.W  #1,D1
+    
+    JSR MOVEM_CHECK_MULTIPLE
+    
+    
+    ;handle second part now
+    
+    MOVE.B  #',',(A2)+                      ;add ',' to buffer
 
+    LEA     EA_MODE_TABLE,A0                ;load table
+    
+    ;isolate source mode
+    MOVE.L  D0,D4
+    LSR.W   #3,D4   
+    ANDI.W  #$7,D4
+    
+    ;check for mode 111 -> immediate data
+    CMP.W   #$7,D4
+    ;if immediate data, leave and get immediate data rather than another register
+    BEQ     EA_MOVEM_IMMEDIATE_DESTINATION     
+    
+    MULU    #6,D4
+     
+    ;isolate source register
+    MOVE.L  D0,D5
+    ANDI.W  #$7,D5
+    
+    JSR    EA_JMP_HELPER
+    JMP     EA_FINISH
 
 EA_MOVEM_DATAREG_TO_MEM:    
     MOVE.L  D2,D6                           ;replenish D6 with stuff
@@ -1553,13 +1630,11 @@ EA_MOVEM_DATAREG_TO_MEM:
     
     MOVE.B  #'D',(A2)+                      ;add 'D' to buffer
     BSR     MOVEM_LOOP                      ;enter loop to get number
-    
-    
+
     ;convert d3 to ascii and add to buffer
     ADDI.B  #$30,D3                         ;convert to ASCII
     MOVE.B  D3,(A2)+                        ;put on buffer
-    
-    
+
     ;check d5 and handle
     ADDI.B  #$30,D5
     
@@ -1668,8 +1743,7 @@ EA_MOVEM_MEM_TO_REG:                        ;bit 10 == 1
     MOVE.L  D0,D4
     LSR.W   #3,D4
     ANDI.W  #$7,D4
-    
-    
+
     ;check for mode 111 -> immediate data
     CMP.W   #$7,D4
     ;if immediate data, leave and get immediate data rather than another register
@@ -1690,7 +1764,57 @@ EA_MOVEM_MEM_TO_REG:                        ;bit 10 == 1
     ANDI.W  #$FF00,D6                       ;isolate nibble 1 and 2
     CMP.W   #0,D6                           ;check if 0
     BEQ     EA_MOVEM_MEM_TO_DATAREG        ;if 0, source is data register
-    BRA     EA_MOVEM_MEM_TO_ADDRREG        ;else it is address register
+    
+    MOVE.W  D2,D6
+    ANDI.W  #$00FF,D6 
+    CMP.W   #0,D6
+    BEQ     EA_MOVEM_MEM_TO_ADDRREG        ;else it is address register
+
+    ;else, both are populated and we need to handle mixture (D7/A5)
+    MOVE.L  D2,D6                           ;replenish D6 with stuff
+    CLR     D7
+
+    ANDI.W  #$00FF,D6                       ;work on first half
+    MOVE.B  #0,D7
+    CLR D5
+    CLR D3
+    CLR D1
+    MOVE.B  #'D',(A2)+                      ;add 'D' to buffer
+    BSR     MOVEM_LOOP                      ;enter loop to get number
+    ;convert d7 to ascii and add to buffer
+    ADDI.B  #$30,D3                         ;convert to ASCII
+    MOVE.B  D3,(A2)+                        ;put on buffer
+    ;check multiple
+    ADDI.B  #$30,D5
+    CLR     D1
+    MOVE.W  #0,D1                           ;FLAG TO INDICATE D
+    
+    JSR MOVEM_CHECK_MULTIPLE
+
+    MOVE.B  #'/',(A2)+                      ;add '/' to buffer
+
+    MOVE.L  D2,D6                           ;replenish D6 with stuff
+    CLR     D7
+
+    ANDI.W  #$FF00,D6                       ;work on FIRST half
+    LSR.W   #8,D6                           ;shift 8 times
+    MOVE.B  #0,D7
+    CLR D5
+    CLR D3
+    CLR D1
+    MOVE.B  #'A',(A2)+                      ;add 'A' to buffer
+    BSR     MOVEM_LOOP                      ;enter loop to get number
+    ;convert d7 to ascii and add to buffer
+    ADDI.B  #$30,D3                         ;convert to ASCII
+    MOVE.B  D3,(A2)+                        ;put on buffer
+    ;check multiple
+    ADDI.B  #$30,D5
+    CLR     D1
+    MOVE.W  #1,D1                           ;FLAG TO INDICATE A
+    
+    JSR MOVEM_CHECK_MULTIPLE
+
+    JMP     EA_FINISH    
         
 EA_MOVEM_MEM_TO_DATAREG: 
     MOVE.L  D2,D6                           ;replenish D6 with stuff
@@ -1899,11 +2023,9 @@ EA_BRANCH:
     CMP.B   #$FF,D1
     BEQ     EA_BRANCH_32
     
-    ;OTHERWISE... HANDLE DISPLACEMENT IN OPCODE!
-    
+    ;OTHERWISE... HANDLE 8-BITDISPLACEMENT IN OPCODE!    
     MOVE.L  D0,D1
-    ANDI.W  #$00FF,D1
-    
+    ANDI.W  #$00FF,D1    
     BRA     EA_BRANCH_8_BIT_DISPLACEMENT
     
     
@@ -1918,8 +2040,15 @@ EA_BRANCH_8_BIT_DISPLACEMENT:
 
 EA_BRANCH_POSITIVE:
     MOVE.L  D0,D1
+    ;D1 = 6004
     
-
+    ANDI.W  #$00FF,D1                   ;isolate displacement
+    MOVE.W  A5,D7                       ;current address    
+    ADD     D1,D7                       ;add    
+    MOVE.B  #$09, (A2)+                 ;adds a ' ' to buffer
+    
+    JSR     EA_BRANCH_ITOA_HELPER
+    JMP     EA_FINISH
 
 EA_BRANCH_NEGATIVE:
     MOVE.L  D0,D1
@@ -1932,9 +2061,7 @@ EA_BRANCH_NEGATIVE:
     MOVE.B  #$09, (A2)+                 ;adds a ' ' to buffer
 
     JSR     EA_BRANCH_ITOA_HELPER
-    
     JMP     EA_FINISH
-
 
 EA_BRANCH_ITOA_HELPER:
     ;VALUE IN D2 --> 00000400
@@ -2060,12 +2187,32 @@ EA_MATH_CONTINUE:
 EA_ROTATION:
     MOVE.B  #$09, (A2)+                 ;adds a ' ' to buffer
     MOVE.L  D0,D1                       ;complete opcode
+    
+    ANDI.W  #$00FF,D1
+    LSR.W   #6,D1
+    CMP     #3,D1
+    BEQ     EA_ROTATION_MODE_7
+    
+    MOVE.L  D0,D1
     LSR.W   #5,D1                       ;shift right 5
     ANDI.W  #1,D1
     
     CMP     #0,D1
     BEQ     EA_ROTATION_IMMEDIATE       ;it is immediate value
     BRA     EA_ROTATION_REGISTER        ;else register 
+    
+EA_ROTATION_MODE_7:
+    ;WE KNOW IT IS MODE 7 - CHECK FOR IMMEDIATE SHORT OR IMMEDIATE LONG
+    MOVE.L  D0,D1
+    ANDI.W  #7,D1
+    CMP.W   #0,D1   
+    BEQ     EA_111_ABSOLUTE_SHORT_HELPER
+    JSR     EA_111_ABSOLUTE_LONG   
+    JMP     EA_FINISH
+
+EA_111_ABSOLUTE_SHORT_HELPER:
+    JSR     EA_111_ABSOLUTE_SHORT
+    JMP     EA_FINISH
 
 EA_ROTATION_CONTINUE:
     MOVE.L  D0,D1                       ;get rotation value
@@ -2093,7 +2240,7 @@ EA_ROTATION_IMMEDIATE:
     BRA     EA_ROTATION_CONTINUE
     
 EA_ROTATION_REGISTER:
-    MOVE.B  #'D',(A2)+                  ;add '#' to buffer
+    MOVE.B  #'D',(A2)+                  ;add 'D' to buffer
     BRA     EA_ROTATION_CONTINUE
     
 EA_JMP_HELPER
@@ -2149,7 +2296,7 @@ EA_MODE_100:                                        ;Address with Predecrement -
     MOVE.B  D5,D3                                   ;move to D3 for conversion
     JSR     EA_HEX_TO_ASCII                         ;convert and put on buffer   
     MOVE.B  #')',(A2)+                              ;put ) on buffer
-
+    RTS
 
 
 ;unsupported
@@ -2347,6 +2494,7 @@ buffer                  ;storing op code
     
 
     END    START        ; last line of source
+
 
 
 
