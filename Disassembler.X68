@@ -1894,9 +1894,69 @@ EA_BRANCH:
     
     CMP.B   #$00,D1
     BEQ     EA_BRANCH_16
-    BRA     EA_BRANCH_32
+    
+    ;if not 0
+    CMP.B   #$FF,D1
+    BEQ     EA_BRANCH_32
+    
+    ;OTHERWISE... HANDLE DISPLACEMENT IN OPCODE!
+    
+    MOVE.L  D0,D1
+    ANDI.W  #$00FF,D1
+    
+    BRA     EA_BRANCH_8_BIT_DISPLACEMENT
+    
+    
+
+EA_BRANCH_8_BIT_DISPLACEMENT:
+    ;D0,D1 HAVE OPCODE
+    LSR     #7,D1
+    
+    CMP.B   #0,D1
+    BEQ     EA_BRANCH_POSITIVE              ;bit = 0
+    BRA     EA_BRANCH_NEGATIVE              ;bit = 1
+
+EA_BRANCH_POSITIVE:
+    MOVE.L  D0,D1
+    
 
 
+EA_BRANCH_NEGATIVE:
+    MOVE.L  D0,D1
+    ANDI.W  #$00FF,D1
+    NEG.B   D1  
+    
+    MOVE.W  A5,D7
+    SUB     D1,D7
+
+    MOVE.B  #$09, (A2)+                 ;adds a ' ' to buffer
+
+    JSR     EA_BRANCH_ITOA_HELPER
+    
+    JMP     EA_FINISH
+
+
+EA_BRANCH_ITOA_HELPER:
+    ;VALUE IN D2 --> 00000400
+    MOVE.L  D7,D2                   ;PRESERVE COPY
+    LSR.W   #right8,D7
+    LSR.W   #right8,D7
+    LSR.W   #right8,D7
+    JSR     EA_ITOA_BYTE_CONVERT
+
+    MOVE.L  D2,D7
+    LSR.W   #right8,D7
+    LSR.W   #right8,D7    
+    JSR     EA_ITOA_BYTE_CONVERT
+
+    MOVE.L  D2,D7
+    LSR.W   #right8,D7
+    JSR     EA_ITOA_BYTE_CONVERT
+
+    MOVE.L  D2,D7
+    JSR     EA_ITOA_BYTE_CONVERT
+
+    JMP     EA_ITOA_DONE
 
 EA_BRANCH_16:
     MOVE.W  (A5),D1                    ;CHECK WHERE POINTER IS WHEN HITS HERE
@@ -2287,6 +2347,7 @@ buffer                  ;storing op code
     
 
     END    START        ; last line of source
+
 
 
 
