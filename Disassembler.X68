@@ -45,11 +45,6 @@ ea_type_branch      EQU     9
 ea_type_math        EQU     10
 ea_type_rotation    EQU     11
 
-
-;flags???
-
-
-
     ORG    $1000
 START:                              ;first instruction of program
     LEA     stack, SP               ;SP @ $A0000
@@ -150,13 +145,40 @@ DECODING_LOOP:
     ;check if we have hit ending address (current memory past ending address)
     CMP.L   A5,A6       ;THE SOURCE OPERAND IS SUBTRACTED FROM THE DESTINATION OPERAND (A6-A5)--> (600 - 400)
     BLE     REPEAT_OR_FINISH
+    
+    ;CHECK FOR FFFF
+    CMP.W   #$FFFF,(A5)
+    BEQ     REPEAT_OR_FINISH
+    
     ADDI.B  #1,D2
     CMP.B   #lines_per_screen,D2
     BGE     FILLED_SCREEN
     BRA     DECODING_LOOP
     
 REPEAT_OR_FINISH:    
-    JMP     DONE
+    MOVE.B  #14,D0
+    LEA     prompt_again,A1
+    TRAP    #15
+    
+    ;get user input
+    MOVE.B  #2,D0
+    LEA     ascii_y_or_n,A1
+    TRAP    #15
+    
+    ;check user input and handle accordingly
+    CLR     D3
+    MOVE.B  ascii_y_or_n,D3
+    CMPI.B  #'y',D3
+    BEQ     GET_STARTING_ADDRESS
+    CMPI.B  #'Y',D3
+    BEQ     GET_STARTING_ADDRESS
+    CMPI.B  #'n',D3
+    BEQ     DONE
+    CMPI.B  #'N',D3
+    BEQ     DONE
+    
+    ;nothing was entered, try again
+    BRA     REPEAT_OR_FINISH    
 
 FILLED_SCREEN:
     MOVE.B  #14,D0
@@ -2319,7 +2341,7 @@ EA_MODE_111:
     BEQ     EA_111_ABSOLUTE_SHORT
     CMP.B   #001,D5
     BEQ     EA_111_ABSOLUTE_LONG
-    CMP.B   #100,D5
+    CMP.B   #$4,D5
     BEQ     EA_111_IMMEDIATE
     
     ;HANDLE ERROR
@@ -2344,8 +2366,21 @@ EA_111_ABSOLUTE_LONG:
     RTS
 
 EA_111_IMMEDIATE:
+    MOVE.B  #'#',(A2)+                              ;put $ on buffer
+    MOVE.B  #'$',(A2)+                              ;put $ on buffer
     
-
+    MOVE.L  D0,D1
+    ANDI.W  #$F000,D1
+    LSR.W   #6,D1
+    LSR.W   #6,D1                           ;total of 12 times
+    
+    
+    ;check size and branch accordingly
+    MOVE.W  D1,D6
+    MOVE.W  (A5),D7
+    JSR EA_ITOA_IMMEDIATE
+    
+    JMP EA_FINISH
    
     
 
@@ -2469,7 +2504,6 @@ get_end_address         DC.B    'Please enter an ending address in hexadecimal',
 
 atoi_error_invalid      DC.B    'Invalid address, characters must be $0-F',CR,LF,0
 
-
 error_message_1         DC.B    'Invalid Address: Must be greater than 0',CR,LF,0
 
 error_message_2         DC.B    'Invalid Address: Must be even',CR,LF,0
@@ -2482,6 +2516,8 @@ error_message_5         DC.B    'Invalid Address: Must be greater than starting 
 
 prompt_enter            DC.B    'Hit Enter to Continue',CR,LF,0
 
+prompt_again            DC.B    'Do You Want to Run Program Again with New Memory Locations? Enter Y or N ',CR,LF,0
+                                
 
 ascii_start:
     DS.w    10          ;specify size later?
@@ -2492,8 +2528,12 @@ ascii_end:
 buffer                  ;storing op code
     DS.W    64          ;do we leave as .w or change to .l ?
     
+ascii_y_or_n:
+    DS.W    8
+    
 
     END    START        ; last line of source
+
 
 
 
